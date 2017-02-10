@@ -48,8 +48,7 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 
 /**
- * <h4>
- * The class contains a series of methods that wraps specific api rest to
+ * <h4>The class contains a series of methods that wraps specific api rest to
  * interact with the IBM BPM product</h4>
  * <p>
  * The BPM connection credential are passed inside an object of type :
@@ -60,16 +59,16 @@ import net.sf.ehcache.Element;
  * @author Primeur
  * @version 1.0
  * 
- * */
+ */
 
-//java.net.URL wsURL = new URL(null, wsLoc + “?command=login”,new sun.net.www.protocol.https.Handler());
+// java.net.URL wsURL = new URL(null, wsLoc + “?command=login”,new
+// sun.net.www.protocol.https.Handler());
 
-//---------------------->personale
+// ---------------------->personale
 
 public class RestApiBPM {
 
 	private ConnectionDataBeanSingleton cdb;
-
 
 	public RestApiBPM() {
 
@@ -87,8 +86,9 @@ public class RestApiBPM {
 	}
 
 	public String aboutLib() {
-		 return "LibBPM Version 2.5 November - 2016";
+		return "LibBPM V2.6";
 	}
+
 	private static String formatError(Exception e) {
 
 		StringWriter sw = new StringWriter();
@@ -97,19 +97,20 @@ public class RestApiBPM {
 		return sw.toString();
 	}
 
-
 	/**
 	 * Start a particular service
 	 * 
-	 * @param String ispHeader
-	 * @param Object serviceInputBO
-	 * @param String serviceName
+	 * @param String
+	 *            ispHeader
+	 * @param Object
+	 *            serviceInputBO
+	 * @param String
+	 *            serviceName
 	 * @return Json response
 	 * @throws UnsupportedEncodingException
 	 * 
 	 *             <p>
-	 *             <h4>
-	 *             Example:</h4>
+	 *             <h4>Example:</h4>
 	 *             <p>
 	 *             JSONObject jo=null;
 	 *             <p>
@@ -122,21 +123,21 @@ public class RestApiBPM {
 	 *             if the serviceInputBO is not present pass null
 	 *             <p>
 	 */
-	public JSONObject startService(String ispHeader, Object serviceInputBO,
-			String serviceName) throws LIBBPMException {
+	public JSONObject startService(String ispHeader, Object serviceInputBO, String serviceName, String user_,
+			String password_) throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		Client client=null;
+
+		Client client = null;
 		JSONObject obj = null;
 
 		String inputVar = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
 		if (serviceInputBO != null) {
@@ -145,87 +146,105 @@ public class RestApiBPM {
 
 		}
 
-		if (isHeaderISPinBO(inputVar)) {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			try {
+			if (isHeaderISPinBO(inputVar)) {
 
-				String userPassword=null;
-				String encoding=null;
-				
-				 if (user !=null && password != null ) {
-				 userPassword = user + ":" + password;
-	             encoding = new String(Base64.encodeBase64(userPassword
-						.getBytes()));
-				 }
+				try {
 
-				String headerMessageValidation = checkISPHeader(ispHeader);
-				
-				sb.append("<function>").append("startService").append("<params>").append("<BusinessObject><![CDATA[").append(inputVar).append("]]>").append("</BusinessObject>").append("<serviceName>").append(serviceName).append("</serviceName>").append("</params>").append("</function>");
+					String userPassword = null;
+					String encoding = null;
 
-				if (headerMessageValidation.length() == 0) {
-					
-					//normalize Ts in ispHeader
-					ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-					
-					Form form = new Form();
-					form.param("action", "start");
-					form.param("parts", "all");
-					
-					if (!(inputVar == null || inputVar.isEmpty())) form.param("params", inputVar);
-					
-					 client = ClientBuilder.newClient();
-					 String result=null;
-					 
-					 if (user !=null && password != null )
-						 
-				        result = client.target( urlServer)
-				            .path("/rest/bpm/wle/v1/service/"+serviceName)
-				            .request( "application/json" )
-			            	.header( "Authorization","Basic "+encoding  )
-			            	.header("X-ISPWebServicesHeader", ispHeader)
-				            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE),
-				            		java.lang.String.class);
-					 else
+					if (user != null && password != null) {
+						userPassword = user + ":" + password;
+						encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+					}
 
-					        result = client.target( urlServer)
-				            .path("/rest/bpm/wle/v1/service/"+serviceName)
-				            .request( "application/json" )
-			            	.header("X-ISPWebServicesHeader", ispHeader)
-				            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE),
-				            		java.lang.String.class);
-					 
-					obj = new JSONObject(result);
-		
-					sb1.append("<![CDATA[").append(result).append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);	
+					String headerMessageValidation = checkISPHeader(ispHeader);
 
-				} else {
-					obj = new JSONObject(headerMessageValidation);
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-				
-					throw new LIBBPMException(headerMessageValidation);
+					sb.append("<function>").append("startService").append("<params>")
+					.append("<BusinessObject><![CDATA[").append(inputVar).append("]]>")
+					.append("</BusinessObject>").append("<serviceName>").append(serviceName)
+					.append("</serviceName>").append("</params>").append("</function>");
+
+					if (headerMessageValidation.length() == 0) {
+
+						// normalize Ts in ispHeader
+						ispHeader = ispHeader.replaceAll(
+								"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>", "<Timestamp>"
+										+ RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+						Form form = new Form();
+						form.param("action", "start");
+						form.param("parts", "all");
+
+						if (!(inputVar == null || inputVar.isEmpty()))
+							form.param("params", inputVar);
+
+						client = ClientBuilder.newClient();
+						String result = null;
+
+						if (user != null && password != null)
+
+							result = client.target(urlServer).path("/rest/bpm/wle/v1/service/" + serviceName)
+							.request("application/json").header("Authorization", "Basic " + encoding)
+							.header("X-ISPWebServicesHeader", ispHeader)
+							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+									java.lang.String.class);
+						else
+
+							result = client.target(urlServer).path("/rest/bpm/wle/v1/service/" + serviceName)
+							.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+									java.lang.String.class);
+
+						obj = new JSONObject(result);
+
+						sb1.append("<![CDATA[").append(result).append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+
+					} else {
+						obj = new JSONObject(headerMessageValidation);
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+								sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+						throw new LIBBPMException(headerMessageValidation);
+					}
+
+				} catch (Exception e) {
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+					throw new LIBBPMException(RestApiBPM.formatError(e));
+
+				} finally {
+
+					if (client != null)
+						client.close();
 				}
+			} else {
 
-			} catch (Exception e) {
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-				
-				throw new LIBBPMException(RestApiBPM.formatError(e));
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+						formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_4),
+						this.cdb);
 
-				
-			}finally {
-				
-				if (client !=null) client.close();
+				throw new LIBBPMException(Messages.ERROR_4);
 			}
+
 		} else {
-						
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_4),this.cdb);
-			
-			throw new LIBBPMException(Messages.ERROR_4);
-		  }
-	
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
+		}
+
 		return obj;
 	}
 
@@ -233,13 +252,14 @@ public class RestApiBPM {
 	 * Get process data filtered by process application-acronym set as default
 	 * (isDefault=True)
 	 * 
-	 * @param String ispHeader
-	 * @param String processAcronym
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            processAcronym
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Esempio di utilizzo:</h4>
+	 *         <h4>Esempio di utilizzo:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -251,392 +271,424 @@ public class RestApiBPM {
 	 */
 
 	@SuppressWarnings("unchecked")
-	public JSONObject exposedProcessByDefaultAcronym(String ispHeader,
-			String processAcronym) throws ParserConfigurationException,
-			SAXException, IOException, XPathExpressionException,
-			LIBBPMException {
+	public JSONObject exposedProcessByDefaultAcronym(String ispHeader, String processAcronym, String user_,
+			String password_)
+					throws ParserConfigurationException, SAXException, IOException, XPathExpressionException, LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
 
-		//  /rest/bpm/wle/v1/exposed/process
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		// /rest/bpm/wle/v1/exposed/process
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
+			try {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("exposedProcessByDefaultAcronym").append("<params>").append("<processAcronym>").append(processAcronym).append("</processAcronym>").append("</params>").append("</function>");
+				String userPassword = null;
+				String encoding = null;
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-			       client = ClientBuilder.newClient();
-			       String result_=null;
-			       
-			       if (user !=null && password != null )
-			    	   
-			        result_ = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header( "Authorization","Basic "+encoding  )
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
-			       
-			       else 
-				        result_ = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
 
-				obj = new JSONObject(result_);
+				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				String xml = XML.toString(obj);
+				sb.append("<function>").append("exposedProcessByDefaultAcronym").append("<params>")
+				.append("<processAcronym>").append(processAcronym).append("</processAcronym>")
+				.append("</params>").append("</function>");
 
-				xml = "<start_appended>" + xml + "</start_appended>";
+				if (headerMessageValidation.length() == 0) {
 
-				InputSource source = new InputSource(new StringReader(xml));
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
 
-				DocumentBuilderFactory dbf = DocumentBuilderFactory
-						.newInstance();
+					client = ClientBuilder.newClient();
+					String result_ = null;
 
-				DocumentBuilder db = dbf.newDocumentBuilder();
+					if (user != null && password != null)
 
-				Document document = db.parse(source);
+						result_ = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response mime
+						// type
+						.header("Authorization", "Basic " + encoding)
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
 
-				XPathFactory xpathFactory = XPathFactory.newInstance();
+					else
+						result_ = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response mime
+						// type
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
 
-				XPath xpath = xpathFactory.newXPath();
+					obj = new JSONObject(result_);
 
-				XPathExpression expr = xpath
-						.compile("/start_appended/data/exposedItemsList");
+					String xml = XML.toString(obj);
 
-				Object result = expr.evaluate(document, XPathConstants.NODESET);
+					xml = "<start_appended>" + xml + "</start_appended>";
 
-				NodeList nodes = (NodeList) result;
+					InputSource source = new InputSource(new StringReader(xml));
 
-				@SuppressWarnings("rawtypes")
-				HashMap service = new HashMap();
+					DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-				@SuppressWarnings("rawtypes")
-				HashMap queryService = new HashMap();
+					DocumentBuilder db = dbf.newDocumentBuilder();
 
-				for (int i = 0; i < nodes.getLength(); i++) {
+					Document document = db.parse(source);
 
-					if (null != nodes.item(i)) {
+					XPathFactory xpathFactory = XPathFactory.newInstance();
 
-						NodeList nodeList = nodes.item(i).getChildNodes();
+					XPath xpath = xpathFactory.newXPath();
 
-						for (int k = 0; null != nodeList
-								&& k < nodeList.getLength(); k++) {
+					XPathExpression expr = xpath.compile("/start_appended/data/exposedItemsList");
 
-							Node nod = nodeList.item(k);
+					Object result = expr.evaluate(document, XPathConstants.NODESET);
 
-							if (nod.getNodeType() == Node.ELEMENT_NODE)
+					NodeList nodes = (NodeList) result;
 
-								service.put(nodeList.item(k).getNodeName(), nod
-										.getFirstChild().getNodeValue());
+					@SuppressWarnings("rawtypes")
+					HashMap service = new HashMap();
+
+					@SuppressWarnings("rawtypes")
+					HashMap queryService = new HashMap();
+
+					for (int i = 0; i < nodes.getLength(); i++) {
+
+						if (null != nodes.item(i)) {
+
+							NodeList nodeList = nodes.item(i).getChildNodes();
+
+							for (int k = 0; null != nodeList && k < nodeList.getLength(); k++) {
+
+								Node nod = nodeList.item(k);
+
+								if (nod.getNodeType() == Node.ELEMENT_NODE)
+
+									service.put(nodeList.item(k).getNodeName(), nod.getFirstChild().getNodeValue());
+
+							}
+
+							if (service.get("processAppAcronym").equals(processAcronym)
+									& service.get("isDefault").equals("true")) {
+
+								queryService.put("processAppAcronym", service);
+
+								service = new HashMap<String, Boolean>();
+
+							}
+
+							service.clear();
 
 						}
-
-						if (service.get("processAppAcronym").equals(
-								processAcronym)
-								& service.get("isDefault").equals("true")) {
-
-							queryService.put("processAppAcronym", service);
-
-							service = new HashMap<String, Boolean>();
-
-						}
-
-						service.clear();
-
 					}
-				}
 
-				if (queryService.size() != 0) {
+					if (queryService.size() != 0) {
 
-					obj = new JSONObject(queryService);
-					
-					sb1.append("<![CDATA[").append(queryService).append("]]>");	
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-					
+						obj = new JSONObject(queryService);
+
+						sb1.append("<![CDATA[").append(queryService).append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+
+					} else {
+
+						obj = new JSONObject("{}");
+
+						sb1.append("<![CDATA[").append("{}").append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+					}
+
 				} else {
-					
-					obj = new JSONObject("{}");
-					
-					sb1.append("<![CDATA[").append("{}").append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
 				}
-
-			} else {
-				obj = new JSONObject(headerMessageValidation);
-					    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
- 		
-			    throw new LIBBPMException(headerMessageValidation);
 			}
-		}
-		
-		
-		catch (Exception e) {
-			
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
 
+			catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			}
+
+			finally {
+
+				if (client != null)
+					client.close();
+			}
+
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
-		
-		
-		finally {
-			
-			if (client !=null) client.close();
-		}
+
 		return obj;
 	}
 
-	
-	private String formatXmltraceData(String ispHeader,String input,String output,String executionTS,String error) {
-		
+	private String formatXmltraceData(String ispHeader, String input, String output, String executionTS, String error) {
+
 		StringBuffer sb = new StringBuffer();
 		sb.append("<trace>").append("<header>").append(ispHeader).append("</header>");
 		sb.append("<otherDataInput>").append("<action>").append(input).append("</action>").append("</otherDataInput>");
-		//sb.append("<output><response><![CDATA[").append(output).append("]]></response>");
+		// sb.append("<output><response><![CDATA[").append(output).append("]]></response>");
 		sb.append("<output><response>").append(output).append("</response>");
-		if (error !=null && error.length() !=0) {		
+		if (error != null && error.length() != 0) {
 			sb.append("<errorMessage><![CDATA[").append(error).append("]]></errorMessage>");
-		    sb.append("</output>");
-		    sb.append("<returnCode>KO</returnCode>");			
+			sb.append("</output>");
+			sb.append("<returnCode>KO</returnCode>");
 		} else {
 			sb.append("</output>");
 			sb.append("<returnCode>OK</returnCode>");
 		}
 		sb.append("<messageType>BPM</messageType>");
-		sb.append("<hostName>").append(RestApiBPM.getHostName()).append("</hostName>").append("<environment>todo</environment>");
-        sb.append("<initialtimeStamp>").append(executionTS).append("</initialtimeStamp>");
-        sb.append("<finaltimeStamp>").append(new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date())).append("</finaltimeStamp>");
-        sb.append("</trace>");
-		
+		sb.append("<hostName>").append(RestApiBPM.getHostName()).append("</hostName>")
+		.append("<environment>todo</environment>");
+		sb.append("<initialtimeStamp>").append(executionTS).append("</initialtimeStamp>");
+		sb.append("<finaltimeStamp>").append(new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date()))
+		.append("</finaltimeStamp>");
+		sb.append("</trace>");
+
 		return sb.toString();
-		
+
 	}
-	
-	
+
 	/**
 	 * Get process data filtered by process application-acronym and snapshot
 	 * version (that is the name of snapshot)
 	 * 
-	 * @param String ispHeader
-	 * @param String processAcronym
-	 * @param String snapshotversion
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            processAcronym
+	 * @param String
+	 *            snapshotversion
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
 	 *         RestApiBPM ra=new RestApiBPM(cdb);
 	 *         <p>
-	 *         jo=ra.xposedProcessbyAcronymAndVersionName(ispHeader,"FIN","version1");
+	 *         jo=ra.xposedProcessbyAcronymAndVersionName(ispHeader,"FIN",
+	 *         "version1");
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
 
 	// /////////////////////////////////////////////////////////
 	@SuppressWarnings("unchecked")
-	public JSONObject exposedProcessbyAcronymAndVersionName(String ispHeader,
-			String processAcronym, String snapshotversion)
-			throws ParserConfigurationException, SAXException, IOException,
-			XPathExpressionException, LIBBPMException {
+	public JSONObject exposedProcessbyAcronymAndVersionName(String ispHeader, String processAcronym,
+			String snapshotversion, String user_, String password_)
+					throws ParserConfigurationException, SAXException, IOException, XPathExpressionException, LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
 
 		// "/rest/bpm/wle/v1/exposed/process"
 
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String userPassword=null;
-			String encoding=null;
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
+			try {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function><exposedProcessbyAcronymAndVersionName>").append("<params>").append("<processAcronym>").append(processAcronym).append("</processAcronym>>").append("<snapShotVersion>").append(snapshotversion).append("</<snapShotVersion>").append("</params></exposedProcessbyAcronymAndVersionName></function>");
+				String userPassword = null;
+				String encoding = null;
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
+				String headerMessageValidation = checkISPHeader(ispHeader);
 
-			       client = ClientBuilder.newClient();
-			       String result_=null;
-			       
-			       if (user !=null && password != null )
-			        result_ = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header( "Authorization","Basic "+encoding  )
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
-			       else 
-				        result_ = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
+				sb.append("<function><exposedProcessbyAcronymAndVersionName>").append("<params>")
+				.append("<processAcronym>").append(processAcronym).append("</processAcronym>>")
+				.append("<snapShotVersion>").append(snapshotversion).append("</<snapShotVersion>")
+				.append("</params></exposedProcessbyAcronymAndVersionName></function>");
 
-				obj = new JSONObject(result_);
+				if (headerMessageValidation.length() == 0) {
 
-				String xml = XML.toString(obj);
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
 
-				xml = "<start_appended>" + xml + "</start_appended>";
+					client = ClientBuilder.newClient();
+					String result_ = null;
 
-				InputSource source = new InputSource(new StringReader(xml));
+					if (user != null && password != null)
+						result_ = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("Authorization", "Basic " + encoding)
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+					else
+						result_ = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
 
-				DocumentBuilderFactory dbf = DocumentBuilderFactory
-						.newInstance();
+					obj = new JSONObject(result_);
 
-				DocumentBuilder db = dbf.newDocumentBuilder();
+					String xml = XML.toString(obj);
 
-				Document document = db.parse(source);
+					xml = "<start_appended>" + xml + "</start_appended>";
 
-				XPathFactory xpathFactory = XPathFactory.newInstance();
+					InputSource source = new InputSource(new StringReader(xml));
 
-				XPath xpath = xpathFactory.newXPath();
+					DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-				XPathExpression expr = xpath
-						.compile("/start_appended/data/exposedItemsList");
+					DocumentBuilder db = dbf.newDocumentBuilder();
 
-				Object result = expr.evaluate(document, XPathConstants.NODESET);
+					Document document = db.parse(source);
 
-				NodeList nodes = (NodeList) result;
+					XPathFactory xpathFactory = XPathFactory.newInstance();
 
-				@SuppressWarnings("rawtypes")
-				HashMap service = new HashMap();
+					XPath xpath = xpathFactory.newXPath();
 
-				@SuppressWarnings("rawtypes")
-				HashMap queryService = new HashMap();
+					XPathExpression expr = xpath.compile("/start_appended/data/exposedItemsList");
 
-				for (int i = 0; i < nodes.getLength(); i++) {
+					Object result = expr.evaluate(document, XPathConstants.NODESET);
 
-					if (null != nodes.item(i)) {
+					NodeList nodes = (NodeList) result;
 
-						NodeList nodeList = nodes.item(i).getChildNodes();
+					@SuppressWarnings("rawtypes")
+					HashMap service = new HashMap();
 
-						for (int k = 0; null != nodeList
-								&& k < nodeList.getLength(); k++) {
+					@SuppressWarnings("rawtypes")
+					HashMap queryService = new HashMap();
 
-							Node nod = nodeList.item(k);
+					for (int i = 0; i < nodes.getLength(); i++) {
 
-							if (nod.getNodeType() == Node.ELEMENT_NODE)
+						if (null != nodes.item(i)) {
 
-								service.put(nodeList.item(k).getNodeName(), nod
-										.getFirstChild().getNodeValue());
+							NodeList nodeList = nodes.item(i).getChildNodes();
+
+							for (int k = 0; null != nodeList && k < nodeList.getLength(); k++) {
+
+								Node nod = nodeList.item(k);
+
+								if (nod.getNodeType() == Node.ELEMENT_NODE)
+
+									service.put(nodeList.item(k).getNodeName(), nod.getFirstChild().getNodeValue());
+
+							}
+
+							if (service.get("processAppAcronym").equals(processAcronym)
+									&& service.get("snapshotName") != null
+									&& service.get("snapshotName").equals(snapshotversion)) {
+
+								queryService.put("processAppAcronym", service);
+
+								service = new HashMap<String, Boolean>();
+							}
+							service.clear();
 
 						}
-
-						if (service.get("processAppAcronym").equals(
-								processAcronym)
-								&& service.get("snapshotName") != null
-								&& service.get("snapshotName").equals(
-										snapshotversion)) {
-
-							queryService.put("processAppAcronym", service);
-
-							service = new HashMap<String, Boolean>();
-						}
-						service.clear();
-
 					}
-				}
 
-				if (queryService.size() != 0) {
-					
-					obj = new JSONObject(queryService);
-					
-					sb1.append("<![CDATA[").append(queryService).append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-					
+					if (queryService.size() != 0) {
+
+						obj = new JSONObject(queryService);
+
+						sb1.append("<![CDATA[").append(queryService).append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+
+					} else {
+						obj = new JSONObject("{}");
+
+						sb1.append("<![CDATA[").append("{}").append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+						;
+					}
 				} else {
-					obj = new JSONObject("{}");
-					
-					sb1.append("<![CDATA[").append("{}").append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);;
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
 				}
-			} else {
-				obj = new JSONObject(headerMessageValidation);
-						    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			  
-			    throw new LIBBPMException(headerMessageValidation);
+			} catch (Exception e) {
+
+				sb1.append("<output>").append("<![CDATA[").append(RestApiBPM.formatError(e)).append("]]></output>");
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-			
-			sb1.append("<output>").append("<![CDATA[").append(RestApiBPM.formatError(e)).append("]]></output>");
-			
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-			
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
-		finally {
-			
-			if (client !=null) client.close();
-		}
+
 		return obj;
 	}
 
 	/**
 	 * Get process data filtered by snapshtotID
 	 * 
-	 * @param String ispHeader
-	 * @param String snapshotId
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            snapshotId
 	 * @return Json response
 	 * 
 	 *         < p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -649,173 +701,183 @@ public class RestApiBPM {
 	 */
 
 	@SuppressWarnings("unchecked")
-	public JSONObject exposedProcessbySnapShotID(String ispHeader,
-			String snapshotid) throws ParserConfigurationException,
-			SAXException, IOException, XPathExpressionException,
-			LIBBPMException {
+	public JSONObject exposedProcessbySnapShotID(String ispHeader, String snapshotid, String user_, String password_)
+			throws ParserConfigurationException, SAXException, IOException, XPathExpressionException, LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		Client client=null;
+
+		Client client = null;
 		JSONObject obj = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-		
-		//  /rest/bpm/wle/v1/exposed/process
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
+			// /rest/bpm/wle/v1/exposed/process
 
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
+			try {
 
+				String userPassword = null;
+				String encoding = null;
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-            sb.append("<function>").append("exposedProcessbySnapShotID").append("<params>").append("<snapshotId>").append(snapshotid).append("</snapshotId>").append("</params>").append("</function>");
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-			       client = ClientBuilder.newClient();
-			       String result_=null;
-			       
-			       if (user !=null && password != null )
-			        result_ = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header( "Authorization","Basic "+encoding  )
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
-			       else 
-				        result_ = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
+				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				obj = new JSONObject(result_);
+				sb.append("<function>").append("exposedProcessbySnapShotID").append("<params>").append("<snapshotId>")
+				.append(snapshotid).append("</snapshotId>").append("</params>").append("</function>");
 
-				String xml = XML.toString(obj);
+				if (headerMessageValidation.length() == 0) {
 
-				xml = "<start_appended>" + xml + "</start_appended>";
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
 
-				InputSource source = new InputSource(new StringReader(xml));
+					client = ClientBuilder.newClient();
+					String result_ = null;
 
-				DocumentBuilderFactory dbf = DocumentBuilderFactory
-						.newInstance();
+					if (user != null && password != null)
+						result_ = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("Authorization", "Basic " + encoding)
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+					else
+						result_ = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
 
-				DocumentBuilder db = dbf.newDocumentBuilder();
+					obj = new JSONObject(result_);
 
-				Document document = db.parse(source);
+					String xml = XML.toString(obj);
 
-				XPathFactory xpathFactory = XPathFactory.newInstance();
+					xml = "<start_appended>" + xml + "</start_appended>";
 
-				XPath xpath = xpathFactory.newXPath();
+					InputSource source = new InputSource(new StringReader(xml));
 
-				XPathExpression expr = xpath
-						.compile("/start_appended/data/exposedItemsList");
+					DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-				Object result = expr.evaluate(document, XPathConstants.NODESET);
+					DocumentBuilder db = dbf.newDocumentBuilder();
 
-				NodeList nodes = (NodeList) result;
+					Document document = db.parse(source);
 
-				@SuppressWarnings("rawtypes")
-				HashMap service = new HashMap();
+					XPathFactory xpathFactory = XPathFactory.newInstance();
 
-				@SuppressWarnings("rawtypes")
-				HashMap queryService = new HashMap();
+					XPath xpath = xpathFactory.newXPath();
 
-				for (int i = 0; i < nodes.getLength(); i++) {
+					XPathExpression expr = xpath.compile("/start_appended/data/exposedItemsList");
 
-					if (null != nodes.item(i)) {
+					Object result = expr.evaluate(document, XPathConstants.NODESET);
 
-						NodeList nodeList = nodes.item(i).getChildNodes();
+					NodeList nodes = (NodeList) result;
 
-						for (int k = 0; null != nodeList
-								&& k < nodeList.getLength(); k++) {
+					@SuppressWarnings("rawtypes")
+					HashMap service = new HashMap();
 
-							Node nod = nodeList.item(k);
+					@SuppressWarnings("rawtypes")
+					HashMap queryService = new HashMap();
 
-							if (nod.getNodeType() == Node.ELEMENT_NODE)
+					for (int i = 0; i < nodes.getLength(); i++) {
 
-								service.put(nodeList.item(k).getNodeName(), nod
-										.getFirstChild().getNodeValue());
+						if (null != nodes.item(i)) {
+
+							NodeList nodeList = nodes.item(i).getChildNodes();
+
+							for (int k = 0; null != nodeList && k < nodeList.getLength(); k++) {
+
+								Node nod = nodeList.item(k);
+
+								if (nod.getNodeType() == Node.ELEMENT_NODE)
+
+									service.put(nodeList.item(k).getNodeName(), nod.getFirstChild().getNodeValue());
+
+							}
+
+							if (service.get("snapshotID") != null && service.get("snapshotID").equals(snapshotid)) {
+
+								queryService.put("processAppAcronym", service);
+								service = new HashMap<String, Boolean>();
+
+							}
+
+							service.clear();
 
 						}
-
-						if (service.get("snapshotID") != null
-								&& service.get("snapshotID").equals(snapshotid)) {
-
-							queryService.put("processAppAcronym", service);
-							service = new HashMap<String, Boolean>();
-
-						}
-
-						service.clear();
-
 					}
-				}
 
-				if (queryService.size() != 0) {
-					
-					obj = new JSONObject(queryService);
-					
-					sb1.append("<![CDATA[").append(queryService).append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-					
+					if (queryService.size() != 0) {
+
+						obj = new JSONObject(queryService);
+
+						sb1.append("<![CDATA[").append(queryService).append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+
+					} else {
+						obj = new JSONObject("{}");
+
+						sb1.append("<![CDATA[").append("{}").append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+					}
+
 				} else {
-					obj = new JSONObject("{}");
-					
-					sb1.append("<![CDATA[").append("{}").append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
 				}
+			} catch (Exception e) {
 
-			} else {
-				obj = new JSONObject(headerMessageValidation);
-					    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			      
-			    throw new LIBBPMException(headerMessageValidation);
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
+		} else {
 
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-			
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
-		finally {
-			
-			if (client !=null) client.close();
-		}
+
 		return obj;
 	}
 
 	/**
 	 * Get all processes exposed by BPM
 	 *
-	 * @param String ispHeader
+	 * @param String
+	 *            ispHeader
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -826,103 +888,122 @@ public class RestApiBPM {
 	 * @throws LIBBPMException
 	 */
 
-	public JSONObject exposedProcesses(String ispHeader) throws LIBBPMException {
+	public JSONObject exposedProcesses(String ispHeader, String user_, String password_) throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		Client client =null;
+
+		Client client = null;
 		JSONObject obj = null;
 
 		// /rest/bpm/wle/v1/exposed/process";
 
-		HttpsURLConnection con=null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		HttpsURLConnection con = null;
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-		
-		try {
 
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
-			
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("exposedProcesses").append("<params>").append("</params>").append("</function>");			
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-			       client = ClientBuilder.newClient();
-			       String result=null;
-			       
-			       System.out.println("Ep "+ urlServer);
-			       
-			       if (user !=null && password != null )
-			        result= client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header( "Authorization","Basic "+encoding  )
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
-			       else 
-				        result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/exposed/process")
-			            .request( "application/json" ) // Expected response mime type
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
+			try {
 
-				obj = new JSONObject(result);
-				
-                sb1.append("<![CDATA[").append(result).append("]]>");
-                
-                trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-				
-			} else {
-				obj = new JSONObject(headerMessageValidation);
-			    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			
-			    throw new LIBBPMException(headerMessageValidation);		
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function>").append("exposedProcesses").append("<params>").append("</params>")
+				.append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					System.out.println("Ep " + urlServer);
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("Authorization", "Basic " + encoding)
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/exposed/process")
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (con != null)
+					con.disconnect();
 			}
-			
-		} catch (Exception e) {
-						
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-		
-		}
-		finally {
-			
-			if (con !=null) con.disconnect();
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
 
 	}
+
 	/**
-	 * Return list of all task available owned by the current user and associated to a specific application name
+	 * Return list of all task available owned by the current user and
+	 * associated to a specific application name
 	 * 
-	 * @param String ispHeader
-	 * @param int countMax
-	 * @param String applicationName
+	 * @param String
+	 *            ispHeader
+	 * @param int
+	 *            countMax
+	 * @param String
+	 *            applicationName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -932,23 +1013,28 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException,UnsupportedEncodingException
 	 */
-	
-	public JSONObject getAssesAvailableTaksList(String ispHeader,int countMax,String application_name) throws LIBBPMException, UnsupportedEncodingException {
-		
-		return executeQueryIBMDEFAULTALLTASKSLIST_75("ASSESS_AVAILABLE",ispHeader,countMax,application_name,"ASSESS_AVAILABLE",false);
+
+	public JSONObject getAssesAvailableTaksList(String ispHeader, int countMax, String application_name, String user_,
+			String password_) throws LIBBPMException, UnsupportedEncodingException {
+
+		return executeQueryIBMDEFAULTALLTASKSLIST_75("ASSESS_AVAILABLE", ispHeader, countMax, application_name,
+				"ASSESS_AVAILABLE", false, user_, password_);
 	}
-	
+
 	/**
-	 * Return list of all task on work owned by the current user and associated to a specific application name
+	 * Return list of all task on work owned by the current user and associated
+	 * to a specific application name
 	 * 
-	 * @param String ispHeader
-	 * @param int countMax
-	 * @param String applicationName
+	 * @param String
+	 *            ispHeader
+	 * @param int
+	 *            countMax
+	 * @param String
+	 *            applicationName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -958,21 +1044,27 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException,UnsupportedEncodingException
 	 */
-	public JSONObject getWorkOnTaskList(String ispHeader,int countMax,String application_name) throws LIBBPMException, UnsupportedEncodingException  {
-		
-		return executeQueryIBMDEFAULTALLTASKSLIST_75("WORK_ON",ispHeader,countMax,application_name,"WORK_ON",false);
+	public JSONObject getWorkOnTaskList(String ispHeader, int countMax, String application_name, String user_,
+			String password_) throws LIBBPMException, UnsupportedEncodingException {
+
+		return executeQueryIBMDEFAULTALLTASKSLIST_75("WORK_ON", ispHeader, countMax, application_name, "WORK_ON", false,
+				user_, password_);
 	}
+
 	/**
-	 * Return list of all task on work (and not suspended) owned by the current user and associated to a specific application name
+	 * Return list of all task on work (and not suspended) owned by the current
+	 * user and associated to a specific application name
 	 * 
-	 * @param String ispHeader
-	 * @param int countMax
-	 * @param String applicationName
+	 * @param String
+	 *            ispHeader
+	 * @param int
+	 *            countMax
+	 * @param String
+	 *            applicationName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -982,21 +1074,27 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException,UnsupportedEncodingException
 	 */
-	public JSONObject getWorkOnActiveTaskList(String ispHeader,int countMax,String application_name) throws LIBBPMException, UnsupportedEncodingException  {
-		
-		return executeQueryIBMDEFAULTALLTASKSLIST_75("WORK_ON_ACTIVE",ispHeader,countMax,application_name,"WORK_ON_ACTIVE",false);
+	public JSONObject getWorkOnActiveTaskList(String ispHeader, int countMax, String application_name, String user_,
+			String password_) throws LIBBPMException, UnsupportedEncodingException {
+
+		return executeQueryIBMDEFAULTALLTASKSLIST_75("WORK_ON_ACTIVE", ispHeader, countMax, application_name,
+				"WORK_ON_ACTIVE", false, user_, password_);
 	}
+
 	/**
-	 * Return list of all task on work and all task available owned by the current user and associated to a specific application name
+	 * Return list of all task on work and all task available owned by the
+	 * current user and associated to a specific application name
 	 * 
-	 * @param String ispHeader
-	 * @param int countMax
-	 * @param String applicationName
+	 * @param String
+	 *            ispHeader
+	 * @param int
+	 *            countMax
+	 * @param String
+	 *            applicationName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1006,21 +1104,27 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException,UnsupportedEncodingException
 	 */
-	public JSONObject getAssesAndWorkOnTaskList(String ispHeader,int countMax,String application_name) throws LIBBPMException, UnsupportedEncodingException  {
-		
-		return executeQueryIBMDEFAULTALLTASKSLIST_75("ASSESS_AND_WORK_ON",ispHeader,countMax,application_name,"ASSESS_AND_WORK_ON",false);
+	public JSONObject getAssesAndWorkOnTaskList(String ispHeader, int countMax, String application_name, String user_,
+			String password_) throws LIBBPMException, UnsupportedEncodingException {
+
+		return executeQueryIBMDEFAULTALLTASKSLIST_75("ASSESS_AND_WORK_ON", ispHeader, countMax, application_name,
+				"ASSESS_AND_WORK_ON", false, user_, password_);
 	}
+
 	/**
-	 * Return list of all task completed owned by the current user and associated to a specific application name
+	 * Return list of all task completed owned by the current user and
+	 * associated to a specific application name
 	 * 
-	 * @param String ispHeader
-	 * @param int countMax
-	 * @param String applicationName
+	 * @param String
+	 *            ispHeader
+	 * @param int
+	 *            countMax
+	 * @param String
+	 *            applicationName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1030,21 +1134,27 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException,UnsupportedEncodingException
 	 */
-	public JSONObject getCompletedTaskList(String ispHeader,int countMax,String application_name) throws LIBBPMException, UnsupportedEncodingException  {
-		
-		return executeQueryIBMDEFAULTALLTASKSLIST_75("CHECK_COMPLETED",ispHeader,countMax,application_name,"CHECK_COMPLETED",false);
+	public JSONObject getCompletedTaskList(String ispHeader, int countMax, String application_name, String user_,
+			String password_) throws LIBBPMException, UnsupportedEncodingException {
+
+		return executeQueryIBMDEFAULTALLTASKSLIST_75("CHECK_COMPLETED", ispHeader, countMax, application_name,
+				"CHECK_COMPLETED", false, user_, password_);
 	}
+
 	/**
-	 * Return list of all task (state is not filtered) owned by the current user and associated to a specific application name
+	 * Return list of all task (state is not filtered) owned by the current user
+	 * and associated to a specific application name
 	 * 
-	 * @param String ispHeader
-	 * @param int countMax
-	 * @param String applicationName
+	 * @param String
+	 *            ispHeader
+	 * @param int
+	 *            countMax
+	 * @param String
+	 *            applicationName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1054,122 +1164,151 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException,UnsupportedEncodingException
 	 */
-	
-	public JSONObject getAllStateTaskList(String ispHeader,int countMax,String application_name) throws LIBBPMException, UnsupportedEncodingException  {
-		
-		return executeQueryIBMDEFAULTALLTASKSLIST_75("ALL_STATE",ispHeader,countMax,application_name,"",true);
+
+	public JSONObject getAllStateTaskList(String ispHeader, int countMax, String application_name, String user_,
+			String password_) throws LIBBPMException, UnsupportedEncodingException {
+
+		return executeQueryIBMDEFAULTALLTASKSLIST_75("ALL_STATE", ispHeader, countMax, application_name, "", true,
+				user_, password_);
 	}
-	
-	private JSONObject executeQueryIBMDEFAULTALLTASKSLIST_75(String function_name,String ispHeader,int countMax,String application_name,String interaction_filter,boolean base) throws LIBBPMException, UnsupportedEncodingException {
-		
+
+	private JSONObject executeQueryIBMDEFAULTALLTASKSLIST_75(String function_name, String ispHeader, int countMax,
+			String application_name, String interaction_filter, boolean base, String user_, String password_)
+					throws LIBBPMException, UnsupportedEncodingException {
+
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		Client client =null;
+
+		Client client = null;
 		JSONObject obj = null;
 
 		// /rest/bpm/wle/v1/exposed/process";
 
-		HttpsURLConnection con=null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		HttpsURLConnection con = null;
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-		
-		String application_name_encoded=URLEncoder.encode( application_name, "UTF-8");
-		
-		try {
 
-			String userPassword=null;
-			String encoding=null;
-						
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
-			
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append(function_name).append("<params><applicationName>").append(application_name).append("</applicationName>").append("</params>").append("</function>");			
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-			       client = ClientBuilder.newClient();
-			       String result=null;
-			       String composedUrl=null;
-			       
+			String application_name_encoded = URLEncoder.encode(application_name, "UTF-8");
+
+			try {
+
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function>").append(function_name).append("<params><applicationName>")
+				.append(application_name).append("</applicationName>").append("</params>")
+				.append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+					String composedUrl = null;
+
 					if (base) {
-						composedUrl="rest/bpm/wle/v1/tasks/query/IBM.DEFAULTALLTASKSLIST_75?processAppName="+application_name_encoded+"&size="+countMax+"&filterByCurrentUser=true&calcStats=false";
+						composedUrl = "rest/bpm/wle/v1/tasks/query/IBM.DEFAULTALLTASKSLIST_75?processAppName="
+								+ application_name_encoded + "&size=" + countMax
+								+ "&filterByCurrentUser=true&calcStats=false";
 					} else {
-						composedUrl="rest/bpm/wle/v1/tasks/query/IBM.DEFAULTALLTASKSLIST_75?interactionFilter="+interaction_filter+"&processAppName="+application_name_encoded+"&size="+countMax+"&filterByCurrentUser=true&calcStats=false";						
+						composedUrl = "rest/bpm/wle/v1/tasks/query/IBM.DEFAULTALLTASKSLIST_75?interactionFilter="
+								+ interaction_filter + "&processAppName=" + application_name_encoded + "&size="
+								+ countMax + "&filterByCurrentUser=true&calcStats=false";
 					}
-					
-			       if (user !=null && password != null ){			    	   
-			    	   //result= client.target(urlServer+"rest/bpm/wle/v1/tasks/query/IBM.DEFAULTALLTASKSLIST_75?interactionFilter=WORK_ON&processAppName=Nuovo%20Censimento%20di%20Servizio%20NBP%20REPS0&size=500&filterByCurrentUser=true&calcStats=false")
-			    	   result= client.target(urlServer+composedUrl)
-			    			   
-			    			   //.path("?size=500&filterByCurrentUser=true&calcStats=false")
-			            .request( "application/json" ) // Expected response mime type
-						.header( "Authorization","Basic "+encoding  )
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
-			       }
-			       else 
-				        result = client.target(urlServer+composedUrl)
-			           // .path(composedUrl)
-			            .request( "application/json" ) // Expected response mime type
-						.header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
 
-				obj = new JSONObject(result);
-				
-                sb1.append("<![CDATA[").append(result).append("]]>");
-                
-                trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-				
-			} else {
-				obj = new JSONObject(headerMessageValidation);
-			    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			
-			    throw new LIBBPMException(headerMessageValidation);		
+					if (user != null && password != null) {
+						// result=
+						// client.target(urlServer+"rest/bpm/wle/v1/tasks/query/IBM.DEFAULTALLTASKSLIST_75?interactionFilter=WORK_ON&processAppName=Nuovo%20Censimento%20di%20Servizio%20NBP%20REPS0&size=500&filterByCurrentUser=true&calcStats=false")
+						result = client.target(urlServer + composedUrl)
+
+								// .path("?size=500&filterByCurrentUser=true&calcStats=false")
+								.request("application/json") // Expected
+								// response
+								// mime type
+								.header("Authorization", "Basic " + encoding)
+								.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+					} else
+						result = client.target(urlServer + composedUrl)
+						// .path(composedUrl)
+						.request("application/json") // Expected
+						// response
+						// mime type
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (con != null)
+					con.disconnect();
 			}
-			
-		} catch (Exception e) {
-						
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-		
-		}
-		finally {
-			
-			if (con !=null) con.disconnect();
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
 
 	}
-	
+
 	/**
 	 * Start a particular process
 	 * 
-	 * @param String ispHeader
-	 * @param Object processInputBO
-	 * @param String bpdId
-	 * @param String processAppId
+	 * @param String
+	 *            ispHeader
+	 * @param Object
+	 *            processInputBO
+	 * @param String
+	 *            bpdId
+	 * @param String
+	 *            processAppId
 	 * @return Json response
 	 * @throws UnsupportedEncodingException
 	 * 
 	 *             <p>
-	 *             <h4>
-	 *             Example:</h4>
+	 *             <h4>Example:</h4>
 	 *             <p>
 	 *             JSONObject jo=null;
 	 *             <p>
@@ -1184,9 +1323,8 @@ public class RestApiBPM {
 	 * @throws LIBBPMException
 	 */
 
-	public JSONObject startProcess(String ispHeader, Object processInputBO,
-			String bpdId, String processAppId)
-			throws UnsupportedEncodingException, LIBBPMException {
+	public JSONObject startProcess(String ispHeader, Object processInputBO, String bpdId, String processAppId,
+			String user_, String password_) throws UnsupportedEncodingException, LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
@@ -1194,111 +1332,138 @@ public class RestApiBPM {
 
 		String inputVar = null;
 
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-		
-		if (processInputBO != null) {
-
-			inputVar = BPMUtil.toJSONString(processInputBO);
-			
-			System.out.println(inputVar);
-		}
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
 
 		JSONObject obj = null;
-		Client client=null;
+		Client client = null;
 
-		if (isHeaderISPinBO(inputVar)) {
-	
-				//	/rest/bpm/wle/v1/process?action=start&bpdId=" + bpdId + "&processAppId=" + processAppId;
-			
-			try {
+		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-				String userPassword=null;
-				String encoding=null;
-				
-				 if (user !=null && password != null ) {
-				 userPassword = user + ":" + password;
-	             encoding = new String(Base64.encodeBase64(userPassword
-						.getBytes()));
-				 }
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-				String headerMessageValidation = checkISPHeader(ispHeader);
-				
-				sb.append("<function>").append("startProcess").append("<params>").append("<BusinessObject><![CDATA[").append(inputVar).append("]]>").append("</BusinessObject>").append("<bpdId>").append(bpdId).append("</bpdId>").append("<processAppId>").append(processAppId).append("</processAppId>").append("</params>").append("</function>");
-				
-				if (headerMessageValidation.length() == 0) {
-					
-					//normalize Ts in ispHeader
-					ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-					
-					Form form = new Form();
-					form.param("action", "start");
-					form.param("bpdId", bpdId);
-					form.param("processAppId", processAppId);
-					
-					if (!(inputVar == null || inputVar.isEmpty())) {
-						form.param("params", inputVar);
+			if (processInputBO != null) {
+
+				inputVar = BPMUtil.toJSONString(processInputBO);
+
+				System.out.println(inputVar);
+			}
+
+			if (isHeaderISPinBO(inputVar)) {
+
+				// /rest/bpm/wle/v1/process?action=start&bpdId=" + bpdId +
+				// "&processAppId=" + processAppId;
+
+				try {
+
+					String userPassword = null;
+					String encoding = null;
+
+					if (user != null && password != null) {
+						userPassword = user + ":" + password;
+						encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
 					}
-					form.param("parts", "all");
-									
-					client = ClientBuilder.newClient();
-					String result=null;
-					
-					if (user !=null && password != null )		
-						result = client.target( urlServer)
-			            	.path("/rest/bpm/wle/v1/process")
-			            	 //.queryParam("action", "start").queryParam("bpdId", bpdId).queryParam("processAppId", processAppId).queryParam("params", inputVarEncoded).queryParam("parts", "all")
-			            	.request( "application/json" )
-			            	.header( "Authorization","Basic "+encoding  )
-			            	.header("X-ISPWebServicesHeader", ispHeader)
-			            	.post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE),
-			            		java.lang.String.class);
-					else 
-		
-				          result = client.target( urlServer)
-				            .path("/rest/bpm/wle/v1/process") // API Module Path
-				            .request( "application/json" ) // Expected response mime type
+
+					String headerMessageValidation = checkISPHeader(ispHeader);
+
+					sb.append("<function>").append("startProcess").append("<params>")
+					.append("<BusinessObject><![CDATA[").append(inputVar).append("]]>")
+					.append("</BusinessObject>").append("<bpdId>").append(bpdId).append("</bpdId>")
+					.append("<processAppId>").append(processAppId).append("</processAppId>").append("</params>")
+					.append("</function>");
+
+					if (headerMessageValidation.length() == 0) {
+
+						// normalize Ts in ispHeader
+						ispHeader = ispHeader.replaceAll(
+								"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>", "<Timestamp>"
+										+ RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+						Form form = new Form();
+						form.param("action", "start");
+						form.param("bpdId", bpdId);
+						form.param("processAppId", processAppId);
+
+						if (!(inputVar == null || inputVar.isEmpty())) {
+							form.param("params", inputVar);
+						}
+						form.param("parts", "all");
+
+						client = ClientBuilder.newClient();
+						String result = null;
+
+						if (user != null && password != null)
+							result = client.target(urlServer).path("/rest/bpm/wle/v1/process")
+							// .queryParam("action",
+							// "start").queryParam("bpdId",
+							// bpdId).queryParam("processAppId",
+							// processAppId).queryParam("params",
+							// inputVarEncoded).queryParam("parts",
+							// "all")
+							.request("application/json").header("Authorization", "Basic " + encoding)
 							.header("X-ISPWebServicesHeader", ispHeader)
-				            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE),
-				            		java.lang.String.class);
+							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+									java.lang.String.class);
+						else
 
-					obj = new JSONObject(result);
-					
-					sb1.append("<![CDATA[").append(result).append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-					
-				} else
-				{
-					obj = new JSONObject(headerMessageValidation);
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-				
-					throw new LIBBPMException(headerMessageValidation);
+							result = client.target(urlServer).path("/rest/bpm/wle/v1/process") // API
+							// Module
+							// Path
+							.request("application/json") // Expected
+							// response
+							// mime
+							// type
+							.header("X-ISPWebServicesHeader", ispHeader)
+							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+									java.lang.String.class);
+
+						obj = new JSONObject(result);
+
+						sb1.append("<![CDATA[").append(result).append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+
+					} else {
+						obj = new JSONObject(headerMessageValidation);
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+								sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+						throw new LIBBPMException(headerMessageValidation);
+					}
+				} catch (Exception e) {
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+					throw new LIBBPMException(RestApiBPM.formatError(e));
+
+				} finally {
+
+					if (client != null)
+						client.close();
 				}
-			} catch (Exception e) {
-										
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-				
-				throw new LIBBPMException(RestApiBPM.formatError(e));
-				
+			} else {
 
-			}	finally {
-				
-				if (client !=null) client.close();
+				sb1.append("<output>").append("<![CDATA[").append(Messages.ERROR_4).append("]]></output>");
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+						formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_4),
+						this.cdb);
+
+				throw new LIBBPMException(Messages.ERROR_4);
 			}
 		} else {
-			
-			sb1.append("<output>").append("<![CDATA[").append(Messages.ERROR_4).append("]]></output>");
-			
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_4),this.cdb);
-			
-			throw new LIBBPMException(Messages.ERROR_4);
-		    }
-		
-		
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
+		}
+
 		return obj;
 
 	}
@@ -1306,15 +1471,16 @@ public class RestApiBPM {
 	/**
 	 * Finish a task
 	 * 
-	 * @param String ispHeader
+	 * @param String
+	 *            ispHeader
 	 * @param taskId
-	 * @param taskBOOutput (Business Object)
+	 * @param taskBOOutput
+	 *            (Business Object)
 	 * @return Json response
 	 * @throws UnsupportedEncodingException
 	 * 
 	 *             <p>
-	 *             <h4>
-	 *             Example:</h4>
+	 *             <h4>Example:</h4>
 	 *             <p>
 	 *             JSONObject jo=null;
 	 *             <p>
@@ -1326,9 +1492,8 @@ public class RestApiBPM {
 	 *             <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject finishTask(String ispHeader, String taskId,
-			Object taskBOOutput,String taskName) throws UnsupportedEncodingException,
-			LIBBPMException {
+	public JSONObject finishTask(String ispHeader, String taskId, Object taskBOOutput, String taskName, String user_,
+			String password_) throws UnsupportedEncodingException, LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
@@ -1340,97 +1505,114 @@ public class RestApiBPM {
 
 			inputVar = BPMUtil.toJSONString(taskBOOutput);
 		}
-		
-		Client client=null;
+
+		Client client = null;
 		JSONObject obj = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		Form form = new Form();
-		form.param("action", "finish");
-			
-		if (isHeaderISPinBO(inputVar) || (taskName !=null && taskName.contains("")) ) {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			//  /rest/bpm/wle/v1/task/" + taskId + "?action=finish
+			Form form = new Form();
+			form.param("action", "finish");
 
-			if (!(inputVar == null || inputVar.isEmpty())) form.param("params", inputVar); //not encoded 
-			
-			form.param("parts", "all");
+			if (isHeaderISPinBO(inputVar) || (taskName != null && taskName.contains(""))) {
 
-			try {
+				// /rest/bpm/wle/v1/task/" + taskId + "?action=finish
 
-				String userPassword=null;
-				String encoding=null;
-				
-				 if (user !=null && password != null ) {
-				 userPassword = user + ":" + password;
-	             encoding = new String(Base64.encodeBase64(userPassword
-						.getBytes()));
-				 }
-				
-				String headerMessageValidation = checkISPHeader(ispHeader);
-				
-				sb.append("<function>").append("finishTask").append("<params>").append("<taskId>").append(taskId).append("</taskId>").append("<BusinessObject><![CDATA[").append(inputVar).append("]]>").append("</BusinessObject>").append("</params>").append("</function>");
+				if (!(inputVar == null || inputVar.isEmpty()))
+					form.param("params", inputVar); // not encoded
 
-				if (headerMessageValidation.length() == 0) {
-					
-					//normalize Ts in ispHeader
-					ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-					
-					client = ClientBuilder.newClient();
-					String result =null;
-					
-					if (user !=null && password != null )
-			        
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/task/"+taskId)
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .header( "Authorization","Basic "+encoding  )
-			            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE),
-			            		java.lang.String.class);
-			        else 
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/process")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE),
-			            		java.lang.String.class);
-					
-					obj = new JSONObject(result);
-					
-					sb1.append("<![CDATA[").append(result).append("]]>");
-					
-					trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-				
-				} else {
-					
-					obj = new JSONObject(headerMessageValidation);
-								    
-				    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-				
-				    throw new LIBBPMException(headerMessageValidation);
+				form.param("parts", "all");
+
+				try {
+
+					String userPassword = null;
+					String encoding = null;
+
+					if (user != null && password != null) {
+						userPassword = user + ":" + password;
+						encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+					}
+
+					String headerMessageValidation = checkISPHeader(ispHeader);
+
+					sb.append("<function>").append("finishTask").append("<params>").append("<taskId>").append(taskId)
+					.append("</taskId>").append("<BusinessObject><![CDATA[").append(inputVar).append("]]>")
+					.append("</BusinessObject>").append("</params>").append("</function>");
+
+					if (headerMessageValidation.length() == 0) {
+
+						// normalize Ts in ispHeader
+						ispHeader = ispHeader.replaceAll(
+								"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>", "<Timestamp>"
+										+ RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+						client = ClientBuilder.newClient();
+						String result = null;
+
+						if (user != null && password != null)
+
+							result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+							.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+							.header("Authorization", "Basic " + encoding)
+							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+									java.lang.String.class);
+						else
+							result = client.target(urlServer).path("/rest/bpm/wle/v1/process")
+							.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+							.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+									java.lang.String.class);
+
+						obj = new JSONObject(result);
+
+						sb1.append("<![CDATA[").append(result).append("]]>");
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+								formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),
+								this.cdb);
+
+					} else {
+
+						obj = new JSONObject(headerMessageValidation);
+
+						trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+								sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+						throw new LIBBPMException(headerMessageValidation);
+					}
+				} catch (Exception e) {
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+					throw new LIBBPMException(RestApiBPM.formatError(e));
+
+				} finally {
+
+					if (client != null)
+						client.close();
+
 				}
-			} catch (Exception e) {
 
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-				
-				throw new LIBBPMException(RestApiBPM.formatError(e));
-				
-			}	finally {
-				
-				if (client  !=null) client.close();
-			    
+			} else {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+						formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_4),
+						this.cdb);
+
+				throw new LIBBPMException(Messages.ERROR_4);
 			}
-			
 		} else {
 
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_4),this.cdb);
-			
-			throw new LIBBPMException(Messages.ERROR_4);
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -1440,13 +1622,14 @@ public class RestApiBPM {
 	/**
 	 * Get all instances associated to a process with a specific appShortName
 	 * 
-	 * @param String ispHeader
-	 * @param String appShortName
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            appShortName
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1456,85 +1639,103 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject processInstancesSearch(String ispHeader,
-			String appShortName) throws LIBBPMException {
+	public JSONObject processInstancesSearch(String ispHeader, String appShortName, String user_, String password_)
+			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
 
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		// /rest/bpm/wle/v1/processes/search?searchFilter=" + appShortName + "&searchFilterScope=AppShortName
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-		try {
+			// /rest/bpm/wle/v1/processes/search?searchFilter=" + appShortName +
+			// "&searchFilterScope=AppShortName
 
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
-			
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("processIntancesSearch").append("<params>").append("<appShortName>").append(appShortName).append("</appShortName>").append("</params>").append("</function>");
+			try {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-			       client = ClientBuilder.newClient();
-			       String result=null;
-			       if (user !=null && password != null )
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/processes/search").queryParam("searchFilter", appShortName).queryParam("searchFilterScope", "AppShortName")
-			            .request( "application/json" ) // Expected response mime type
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .header( "Authorization","Basic "+encoding  )
-			            .get(java.lang.String.class);
-			       else 				
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/processes/search").queryParam("searchFilter", appShortName).queryParam("searchFilterScope", "AppShortName")
-			            .request( "application/json" ) // Expected response mime type
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
+				String userPassword = null;
+				String encoding = null;
 
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
 
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
+				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				
-			} else {
-				obj = new JSONObject(headerMessageValidation);
-			 	
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			
-			    throw new LIBBPMException(headerMessageValidation);
-			}    
-		} catch (Exception e) {
-					
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-			
+				sb.append("<function>").append("processIntancesSearch").append("<params>").append("<appShortName>")
+				.append(appShortName).append("</appShortName>").append("</params>").append("</function>");
 
-		}		finally {
-			
-			if (client !=null) client.close();
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/processes/search")
+						.queryParam("searchFilter", appShortName)
+						.queryParam("searchFilterScope", "AppShortName").request("application/json") // Expected
+						// response
+						// mime
+						// type
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.header("Authorization", "Basic " + encoding).get(java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/processes/search")
+						.queryParam("searchFilter", appShortName)
+						.queryParam("searchFilterScope", "AppShortName").request("application/json") // Expected
+						// response
+						// mime
+						// type
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
+			}
+
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -1544,13 +1745,14 @@ public class RestApiBPM {
 	/**
 	 * Get all tasks associated to a specific process instance
 	 * 
-	 * @param String ispHeader
-	 * @param String instanceId
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            instanceId
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1561,106 +1763,137 @@ public class RestApiBPM {
 	 * @throws LIBBPMException
 	 */
 
-	public JSONObject queryTasks(String ispHeader, String instanceId)
+	public JSONObject queryTasks(String ispHeader, String instanceId, String user_, String password_)
 			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		Client client=null;
+
+		Client client = null;
 		JSONObject obj = null;
 
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();		
-		
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-		
-		try {
-		
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("queryTasks").append("<params>").append("<instanceId>").append(instanceId).append("</instanceId>").append("</params>").append("</function>");
-			
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-							
-				Form form = new Form();
-				form.param("condition","instanceId|"+instanceId); //%7c
-				form.param("organization","byTask");
-				//form.param("sort","byTask");
-				form.param("run","true");
-				form.param("shared","false");
-				form.param("filterByCurrentUser","false");
-				
-			       client = ClientBuilder.newClient();
-			       String result=null;
-			       
-			       if (user !=null && password != null )
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/search/query")
-			            //.queryParam("condition", "instanceId%7C"+instanceId).property("organization", "byTask").queryParam("run", "true").queryParam("shared", "false").queryParam("filterByCurrentUser", "false")
-			             /////.queryParam("condition", "instanceId%7C"+instanceId).property("organization", "byTask").queryParam("sort", "byTask").queryParam("run", "true").queryParam("shared", "false").queryParam("filterByCurrentUser", "false")
-			            .queryParam("condition", "instanceId|"+instanceId).queryParam("organization", "byTask").queryParam("run", "true").queryParam("shared", "false").queryParam("filterByCurrentUser", "false")
-			            .request( "application/json" )
-			            .header( "Authorization","Basic "+encoding  )
-			            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-			            .header("Pragma", "no-cache")
-			            .header("Expires", "0")
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            
-			            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-			            		java.lang.String.class);
-			       else 		    	   
-			    	    	       
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/search/query")
-			            .queryParam("condition", "instanceId|"+instanceId).property("organization", "byTask").queryParam("run", "true").queryParam("shared", "false").queryParam("filterByCurrentUser", "false")
-			            .request( "application/json" ) 
-			            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-			            .header("Pragma", "no-cache")
-			            .header("Expires", "0")
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-			            		java.lang.String.class);
-                  
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-				
-			} else
-			{
-				obj = new JSONObject(headerMessageValidation);
-				    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			
-			    throw new LIBBPMException(headerMessageValidation);
-			
+			try {
+
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function>").append("queryTasks").append("<params>").append("<instanceId>")
+				.append(instanceId).append("</instanceId>").append("</params>").append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					Form form = new Form();
+					form.param("condition", "instanceId|" + instanceId); // %7c
+					form.param("organization", "byTask");
+					// form.param("sort","byTask");
+					form.param("run", "true");
+					form.param("shared", "false");
+					form.param("filterByCurrentUser", "false");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/search/query")
+						// .queryParam("condition",
+						// "instanceId%7C"+instanceId).property("organization",
+						// "byTask").queryParam("run",
+						// "true").queryParam("shared",
+						// "false").queryParam("filterByCurrentUser",
+						// "false")
+						///// .queryParam("condition",
+						// "instanceId%7C"+instanceId).property("organization",
+						// "byTask").queryParam("sort",
+						// "byTask").queryParam("run",
+						// "true").queryParam("shared",
+						// "false").queryParam("filterByCurrentUser",
+						// "false")
+						.queryParam("condition", "instanceId|" + instanceId)
+						.queryParam("organization", "byTask").queryParam("run", "true")
+						.queryParam("shared", "false").queryParam("filterByCurrentUser", "false")
+						.request("application/json").header("Authorization", "Basic " + encoding)
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					else
+
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/search/query")
+						.queryParam("condition", "instanceId|" + instanceId).property("organization", "byTask")
+						.queryParam("run", "true").queryParam("shared", "false")
+						.queryParam("filterByCurrentUser", "false").request("application/json")
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-					
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
 
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-			
-		}
-		finally {
-			
-			if (client !=null) client.close();
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -1671,13 +1904,14 @@ public class RestApiBPM {
 	 * 
 	 * Get the details of a task
 	 * 
-	 * @param String ispHeader
-	 * @param String taskid
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            taskid
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1688,7 +1922,7 @@ public class RestApiBPM {
 	 * @throws LIBBPMException
 	 */
 
-	public JSONObject taskDetails(String ispHeader, String taskId)
+	public JSONObject taskDetails(String ispHeader, String taskId, String user_, String password_)
 			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
@@ -1697,74 +1931,85 @@ public class RestApiBPM {
 
 		// urlServer + "/rest/bpm/wle/v1/task/" + taskId + "?parts=data";
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
-		
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
-			
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("taskDetails").append("<params>").append("<taskId>").append(taskId).append("</taskId>").append("</params>").append("</function>");
-			
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-				   client = ClientBuilder.newClient();
-			       String result=null;
-			       
-			       if (user !=null && password != null )
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/task/"+taskId).queryParam("parts", "data")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .header( "Authorization","Basic "+encoding  )
-			            .get(java.lang.String.class);
-			       else 				
-			             result = client.target( urlServer)
-			             .path("/rest/bpm/wle/v1/task/"+taskId).queryParam("parts", "data")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);		
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);	
-				
-			} else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			   
-			   trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);	
-			
-			   throw new LIBBPMException(headerMessageValidation);
+			try {
+
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function>").append("taskDetails").append("<params>").append("<taskId>").append(taskId)
+				.append("</taskId>").append("</params>").append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("parts", "data").request("application/json")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.header("Authorization", "Basic " + encoding).get(java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("parts", "data").request("application/json")
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-				
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);	
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));			
+		} else {
 
-		} 		finally {
-			
-			if (client !=null) client.close();
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -1776,13 +2021,14 @@ public class RestApiBPM {
 	 * 
 	 * Assign a task to current user
 	 * 
-	 * @param String ispHeader
-	 * @param String taskid
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            taskid
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1792,118 +2038,139 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject assignTaskToCurrent(String ispHeader, String taskId)
+	public JSONObject assignTaskToCurrent(String ispHeader, String taskId, String user_, String password_)
 			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		//   /rest/bpm/wle/v1/task/" + taskId + "?action=assign&toMe=true&parts=all
+
+		// /rest/bpm/wle/v1/task/" + taskId +
+		// "?action=assign&toMe=true&parts=all
 
 		JSONObject obj = null;
-		
-		
-		String userPassword =null;
-		String encoding=null;
-        if (user !=null && password != null ) {
-		userPassword = user + ":" + password;
-		encoding = new String(Base64.encodeBase64(userPassword
-				.getBytes()));
-        }
-		
-		Client client =null;
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		String userPassword = null;
+		String encoding = null;
+		if (user != null && password != null) {
+			userPassword = user + ":" + password;
+			encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+		}
+
+		Client client = null;
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function><assignTaskToCurrent>").append("<params>").append("<taskId>").append(taskId).append("</taskId>").append("</params></assignTaskToCurrent></function>");
+			try {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				Form form = new Form();
-				form.param("action", "assign");
-				form.param("toMe", "true");
-				form.param("parts", "all");
-				
-				client = ClientBuilder.newClient();
-				String result=null;
-				
-				if (user !=null && password != null) 			   
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/task/"+taskId)
-			            .queryParam("action", "assign").queryParam("toMe", "true").queryParam("parts", "all")
-			            .request( "application/json" )
-			            .header( "Authorization","Basic "+encoding  )
-			            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-			            .header("Pragma", "no-cache")
-			            .header("Expires", "0")
-			            .header("X-ISPWebServicesHeader", ispHeader)	            
-			            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-			            		java.lang.String.class);
-				 else
-		             result = client.target( urlServer)
-		            .path("/rest/bpm/wle/v1/task/"+taskId)
-		            .queryParam("action", "assign").queryParam("toMe", "true").queryParam("parts", "all")
-		            .request( "application/json" )
-		            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-		            .header("Pragma", "no-cache")
-		            .header("Expires", "0")
-		            .header("X-ISPWebServicesHeader", ispHeader)	            
-		            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-		            		java.lang.String.class);
-				obj = new JSONObject(result);
-				
-			    sb1.append("<![CDATA[").append(result).append("]]>");
-			    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-			    
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function><assignTaskToCurrent>").append("<params>").append("<taskId>").append(taskId)
+				.append("</taskId>").append("</params></assignTaskToCurrent></function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+					Form form = new Form();
+					form.param("action", "assign");
+					form.param("toMe", "true");
+					form.param("parts", "all");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("toMe", "true").queryParam("parts", "all")
+						.request("application/json").header("Authorization", "Basic " + encoding)
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("toMe", "true").queryParam("parts", "all")
+						.request("application/json")
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				}
+
+				else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
 			}
 
-			else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			    
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-	        
-			    throw new LIBBPMException(headerMessageValidation);
+			finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-			
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-			
+
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
-		
-		finally {
-			
-			if (client !=null) client.close();
-		}
+
 		return obj;
 
 	}
 
-	//29102016
+	// 29102016
 
 	/**
 	 * <p>
 	 * Reassign task to the lane
 	 * 
-	 * @param String ispHeader
-	 * @param String taskid
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            taskid
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -1913,102 +2180,120 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject reassignTaks(String ispHeader, String taskId)
+	public JSONObject reassignTaks(String ispHeader, String taskId, String user_, String password_)
 			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
-		//https://win-ntastb0i3iv:9443/rest/bpm/wle/v1/task/3957?action=assign&back=true&parts=all
+
+		// https://win-ntastb0i3iv:9443/rest/bpm/wle/v1/task/3957?action=assign&back=true&parts=all
 
 		JSONObject obj = null;
-		
-		
-		String userPassword =null;
-		String encoding=null;
-        if (user !=null && password != null ) {
-		userPassword = user + ":" + password;
-		encoding = new String(Base64.encodeBase64(userPassword
-				.getBytes()));
-        }
-		
-		Client client =null;
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		String userPassword = null;
+		String encoding = null;
+		if (user != null && password != null) {
+			userPassword = user + ":" + password;
+			encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+		}
+
+		Client client = null;
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function><reassignTask>").append("<params>").append("<taskId>").append(taskId).append("</taskId>").append("</params></reassignTask></function>");
+			try {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-				Form form = new Form();
-				form.param("action", "assign");
-				form.param("back", "true");
-				form.param("parts", "all");
-				
-				client = ClientBuilder.newClient();
-				String result=null;
-				
-				if (user !=null && password != null) 
-		             result = client.target( urlServer)
-		            .path("/rest/bpm/wle/v1/task/"+taskId)
-		            .queryParam("action", "assign").queryParam("back", "true").queryParam("parts", "all")
-		            .request( "application/json" )
-		            .header( "Authorization","Basic "+encoding  )
-		            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-		            .header("Pragma", "no-cache")
-		            .header("Expires", "0")
-		            .header("X-ISPWebServicesHeader", ispHeader)	            
-		            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-		            		java.lang.String.class);
-				 else
-		             result = client.target( urlServer)
-		            .path("/rest/bpm/wle/v1/task/"+taskId)
-		            .queryParam("action", "assign").queryParam("back", "true").queryParam("parts", "all")
-		            .request( "application/json" )
-		            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-		            .header("Pragma", "no-cache")
-		            .header("Expires", "0")
-		            .header("X-ISPWebServicesHeader", ispHeader)	            
-		            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-		            		java.lang.String.class);
-				obj = new JSONObject(result);
-				
-			    sb1.append("<![CDATA[").append(result).append("]]>");
-			    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-			    
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function><reassignTask>").append("<params>").append("<taskId>").append(taskId)
+				.append("</taskId>").append("</params></reassignTask></function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					Form form = new Form();
+					form.param("action", "assign");
+					form.param("back", "true");
+					form.param("parts", "all");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("back", "true").queryParam("parts", "all")
+						.request("application/json").header("Authorization", "Basic " + encoding)
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("back", "true").queryParam("parts", "all")
+						.request("application/json")
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				}
+
+				else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
 			}
 
-			else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			    
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-	        
-			    throw new LIBBPMException(headerMessageValidation);
+			finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-			
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
-			
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
-		
-		finally {
-			
-			if (client !=null) client.close();
-		}
+
 		return obj;
 
 	}
@@ -2017,13 +2302,14 @@ public class RestApiBPM {
 	 * 
 	 * Assign a task to a user
 	 * 
-	 * @param String ispHeader
-	 * @param String userbpm
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            userbpm
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -2034,98 +2320,117 @@ public class RestApiBPM {
 	 * @throws LIBBPMException
 	 */
 
-	public JSONObject assignTaskToUser(String ispHeader, String taskId,
-			String userbpm) throws LIBBPMException {
+	public JSONObject assignTaskToUser(String ispHeader, String taskId, String userbpm, String user_, String password_)
+			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		// /rest/bpm/wle/v1/task/" + taskId + "?action=assign&toUser=" + userbpm + "&parts=all
+		// /rest/bpm/wle/v1/task/" + taskId + "?action=assign&toUser=" + userbpm
+		// + "&parts=all
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
 
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String userPassword =null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
-			
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function><assignTaskToUser>").append("<params>").append("<taskId>").append(taskId).append("</taskId>").append("<user>").append(userbpm).append("</user>").append("</params></assignTaskToUser></function>");
+			try {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-				Form form = new Form();
-				form.param("action", "assign");
-				form.param("toUser", userbpm);
-				form.param("parts", "all");
-				
-				String result=null;
-				client = ClientBuilder.newClient();
-				if (user !=null && password != null )			    
-		             result = client.target( urlServer)
-		            .path("/rest/bpm/wle/v1/task/"+taskId)
-		            .queryParam("action", "assign").queryParam("toUser", userbpm).queryParam("parts", "all")
-		            .request( "application/json" )
-		            .header( "Authorization","Basic "+encoding  )
-		            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-		            .header("Pragma", "no-cache")
-		            .header("Expires", "0")
-		            .header("X-ISPWebServicesHeader", ispHeader)	            
-		            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-		            		java.lang.String.class);
-			        else
-			             result = client.target( urlServer)
-				            .path("/rest/bpm/wle/v1/task/"+taskId)
-				            .queryParam("action", "assign").queryParam("toUser", userbpm).queryParam("parts", "all")
-				            .request( "application/json" )
-				            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-				            .header("Pragma", "no-cache")
-				            .header("Expires", "0")
-				            .header("X-ISPWebServicesHeader", ispHeader)	            
-				            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-				            		java.lang.String.class);
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-				
-			} else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			    
-			    throw new LIBBPMException(headerMessageValidation);
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function><assignTaskToUser>").append("<params>").append("<taskId>").append(taskId)
+				.append("</taskId>").append("<user>").append(userbpm).append("</user>")
+				.append("</params></assignTaskToUser></function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					Form form = new Form();
+					form.param("action", "assign");
+					form.param("toUser", userbpm);
+					form.param("parts", "all");
+
+					String result = null;
+					client = ClientBuilder.newClient();
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("toUser", userbpm).queryParam("parts", "all")
+						.request("application/json").header("Authorization", "Basic " + encoding)
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("toUser", userbpm).queryParam("parts", "all")
+						.request("application/json")
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-			
-			 trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
 
-		}
-		finally {
-			
-			if (client !=null) client.close();
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -2136,13 +2441,14 @@ public class RestApiBPM {
 	 * 
 	 * Assign a task to a group
 	 * 
-	 * @param String ispHeader
-	 * @param String group
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            group
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -2152,101 +2458,121 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject assignTaskToGroup(String ispHeader, String taskId,
-			String group) throws LIBBPMException {
+	public JSONObject assignTaskToGroup(String ispHeader, String taskId, String group, String user_, String password_)
+			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		// /rest/bpm/wle/v1/task/" + taskId + "?action=assign&toGroup=" + group + "&parts=all";
+		// /rest/bpm/wle/v1/task/" + taskId + "?action=assign&toGroup=" + group
+		// + "&parts=all";
 
-		JSONObject obj = null;	
-		Client client =null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+		JSONObject obj = null;
+		Client client = null;
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-	
-		try {
-			
-			String userPassword =null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			sb.append("<function><assignTaskToGroup>").append("<params>").append("<taskId>").append(taskId).append("</taskId>").append("<group>").append(group).append("</group>").append("</params></assignTaskToGroup></function>");
-			
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-				Form form = new Form();
-				form.param("action", "assign");
-				form.param("toGroup", group);
-				form.param("parts", "all");
-				
-			    client = ClientBuilder.newClient();
-			    String result=null;
-			    
-				if (user !=null && password != null) 
-		             result = client.target( urlServer)
-		            .path("/rest/bpm/wle/v1/task/"+taskId)
-		            .queryParam("action", "assign").queryParam("toGroup", group).queryParam("parts", "all")
-		            .request( "application/json" )
-		            .header( "Authorization","Basic "+encoding  )
-		            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-		            .header("Pragma", "no-cache")
-		            .header("Expires", "0")
-		            .header("X-ISPWebServicesHeader", ispHeader)	            
-		            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-		            		java.lang.String.class);
-				else    
-		             result = client.target( urlServer)
-		            .path("/rest/bpm/wle/v1/task/"+taskId)
-		            .queryParam("action", "assign").queryParam("toGroup", group).queryParam("parts", "all")
-		            .request( "application/json" )
-		            .header("Cache-Control", "no-cache, no-store, must-revalidate")
-		            .header("Pragma", "no-cache")
-		            .header("Expires", "0")
-		            .header("X-ISPWebServicesHeader", ispHeader)	            
-		            .post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), //se metto put non va
-		            		java.lang.String.class);
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
+			try {
 
-			} else
-				{
-				obj = new JSONObject(headerMessageValidation);
-			
-			    sb1.append("<output>").append("<![CDATA[").append(headerMessageValidation).append("]]></output>");
-			    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			    
-			    throw new LIBBPMException(headerMessageValidation);
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function><assignTaskToGroup>").append("<params>").append("<taskId>").append(taskId)
+				.append("</taskId>").append("<group>").append(group).append("</group>")
+				.append("</params></assignTaskToGroup></function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					Form form = new Form();
+					form.param("action", "assign");
+					form.param("toGroup", group);
+					form.param("parts", "all");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("toGroup", group).queryParam("parts", "all")
+						.request("application/json").header("Authorization", "Basic " + encoding)
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/task/" + taskId)
+						.queryParam("action", "assign").queryParam("toGroup", group).queryParam("parts", "all")
+						.request("application/json")
+						.header("Cache-Control", "no-cache, no-store, must-revalidate")
+						.header("Pragma", "no-cache").header("Expires", "0")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), // se
+								// metto
+								// put
+								// non
+								// va
+								java.lang.String.class);
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					sb1.append("<output>").append("<![CDATA[").append(headerMessageValidation).append("]]></output>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
 			}
-		} catch (Exception e) {
-		
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
 
-		}
-		
-		finally {
-			
-			if (client !=null) client.close();
+			finally {
+
+				if (client != null)
+					client.close();
+			}
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -2255,12 +2581,14 @@ public class RestApiBPM {
 	/**
 	 * 
 	 * Get users associated with the group
-	 
-	 * @param String ispHeader
-	 * @param String group
+	 * 
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            group
 	 * @return Json response
 	 * 
-	 *         Example: </h4>
+	 *         Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -2270,84 +2598,96 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject usersInGroup(String ispHeader, String group)
+	public JSONObject usersInGroup(String ispHeader, String group, String user_, String password_)
 			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		//"/rest/bpm/wle/v1/groups?filter=" + group + "&includeDeleted=false&parts=all";
+		// "/rest/bpm/wle/v1/groups?filter=" + group +
+		// "&includeDeleted=false&parts=all";
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }			
+			try {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
+				String userPassword = null;
+				String encoding = null;
 
-			sb.append("<function>").append("userInGroup").append("<params>").append("<group>").append(group).append("</group").append("</params>").append("</function>");
-			
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-				   client = ClientBuilder.newClient();
-			       String result=null;
-			       
-			       if (user !=null && password != null )
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/groups").queryParam("filter", group).queryParam("includeDeleted", "false").queryParam("parts", "all")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .header( "Authorization","Basic "+encoding  )
-			            .get(java.lang.String.class);
-			       else 				
-			             result = client.target( urlServer)
-			             .path("/rest/bpm/wle/v1/groups").queryParam("filter", group).queryParam("includeDeleted", "false").queryParam("parts", "all")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
 
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);			
+				String headerMessageValidation = checkISPHeader(ispHeader);
 
-			} else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS,headerMessageValidation),this.cdb);			
-			
-			    throw new LIBBPMException(headerMessageValidation);
+				sb.append("<function>").append("userInGroup").append("<params>").append("<group>").append(group)
+				.append("</group").append("</params>").append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/groups").queryParam("filter", group)
+						.queryParam("includeDeleted", "false").queryParam("parts", "all")
+						.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+						.header("Authorization", "Basic " + encoding).get(java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/groups").queryParam("filter", group)
+						.queryParam("includeDeleted", "false").queryParam("parts", "all")
+						.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+						.get(java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-		} catch (Exception e) {
-		
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);			
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
+		} else {
 
-		}
-		finally {
-			
-			if (client!=null) client.close();
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -2358,13 +2698,14 @@ public class RestApiBPM {
 	 * 
 	 * Get user information
 	 * 
-	 * @param String ispHeader
-	 * @param String utente
+	 * @param String
+	 *            ispHeader
+	 * @param String
+	 *            utente
 	 * @return Json response
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -2374,86 +2715,98 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject usersInformation(String ispHeader, String usertarget)
+	public JSONObject usersInformation(String ispHeader, String usertarget, String user_, String password_)
 			throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
 
-		
-		// "/rest/bpm/wle/v1/user/"+ usertarget+ "?includeInternalMemberships=false&refreshUser=false&parts=memberships";
+		// "/rest/bpm/wle/v1/user/"+ usertarget+
+		// "?includeInternalMemberships=false&refreshUser=false&parts=memberships";
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
 
-		try {
-					
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("userInformation").append("<params>").append("<user>").append(usertarget).append("</user").append("</params>").append("</function>");
+			try {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-				
-				   client = ClientBuilder.newClient();
-			       String result=null;
-			       
-			       if (user !=null && password != null )
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/user/"+usertarget).queryParam("includeInternalMemberships", "false").queryParam("refreshUser", "false").queryParam("parts", "memberships")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .header( "Authorization","Basic "+encoding  )
-			            .get(java.lang.String.class);
-			       else 				
-			             result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/user/"+usertarget).queryParam("includeInternalMemberships", "false").queryParam("refreshUser", "false").queryParam("parts", "memberships")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .get(java.lang.String.class);
-	
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);			
-				
-			} else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			
-			   trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);	
-			
-			   throw new LIBBPMException(headerMessageValidation);
+				String userPassword = null;
+				String encoding = null;
+
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
+
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function>").append("userInformation").append("<params>").append("<user>").append(usertarget)
+				.append("</user").append("</params>").append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/user/" + usertarget)
+						.queryParam("includeInternalMemberships", "false").queryParam("refreshUser", "false")
+						.queryParam("parts", "memberships").request("application/json")
+						.header("X-ISPWebServicesHeader", ispHeader)
+						.header("Authorization", "Basic " + encoding).get(java.lang.String.class);
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/user/" + usertarget)
+						.queryParam("includeInternalMemberships", "false").queryParam("refreshUser", "false")
+						.queryParam("parts", "memberships").request("application/json")
+						.header("X-ISPWebServicesHeader", ispHeader).get(java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
 			}
-			
-		} catch (Exception e) {
-			
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);	
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
+		} else {
 
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
 
-		}		finally {
-			
-			if (client !=null) client.close();
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
@@ -2463,14 +2816,14 @@ public class RestApiBPM {
 	/**
 	 * 
 	 * Get all tasks in state New or Received
-	 
-	 * @param String ispHeader
+	 * 
+	 * @param String
+	 *            ispHeader
 	 * 
 	 * @return Json response
-
+	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example:</h4>
+	 *         <h4>Example:</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -2480,104 +2833,110 @@ public class RestApiBPM {
 	 *         <p>
 	 * @throws LIBBPMException
 	 */
-	public JSONObject getInbox(String ispHeader) throws LIBBPMException {
+	public JSONObject getInbox(String ispHeader, String user_, String password_) throws LIBBPMException {
 
 		String urlServer = cdb.getUrl();
 		String user = cdb.getUser();
 		String password = cdb.getPassword();
-		
+
 		Form form = new Form();
-		form.param("columns","instanceId%2CbpdName%2CassignedToRole%2CinstanceStatus%2CinstanceProcessApp%2CassignedToUser%2CassignedToRole%2CtaskStatus%2CtaskDueDate%2CtaskPriority%2CtaskReceivedDate%2CtaskActivityName");
-        form.param("condition", "taskStatus%7CNew_or_Received");
-        form.param("sort", "byInstance");
-        form.param("secondSort", "instanceId");
-        form.param("organization", "byTask");
-        form.param("run", "true");
-        form.param("shared", "false");
-        form.param("filterByCurrentUser", "false");
-        
+		form.param("columns",
+				"instanceId%2CbpdName%2CassignedToRole%2CinstanceStatus%2CinstanceProcessApp%2CassignedToUser%2CassignedToRole%2CtaskStatus%2CtaskDueDate%2CtaskPriority%2CtaskReceivedDate%2CtaskActivityName");
+		form.param("condition", "taskStatus%7CNew_or_Received");
+		form.param("sort", "byInstance");
+		form.param("secondSort", "instanceId");
+		form.param("organization", "byTask");
+		form.param("run", "true");
+		form.param("shared", "false");
+		form.param("filterByCurrentUser", "false");
+
 		// /rest/bpm/wle/v1/search/query";
 
-		Client client=null;
+		Client client = null;
 		JSONObject obj = null;
-		
-		StringBuffer sb=new StringBuffer();
-		StringBuffer sb1=new StringBuffer();
-		
+
+		StringBuffer sb = new StringBuffer();
+		StringBuffer sb1 = new StringBuffer();
+
 		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
-		
-		try {
 
-			String userPassword=null;
-			String encoding=null;
-			
-			 if (user !=null && password != null ) {
-			 userPassword = user + ":" + password;
-             encoding = new String(Base64.encodeBase64(userPassword
-					.getBytes()));
-			 }
+		if (!RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
-			String headerMessageValidation = checkISPHeader(ispHeader);
-			
-			sb.append("<function>").append("getInbox").append("<params>").append("</params>").append("</function>");
+			try {
 
-			if (headerMessageValidation.length() == 0) {
-				
-				//normalize Ts in ispHeader
-				ispHeader=ispHeader.replaceAll("<Timestamp>"+RestApiBPM.getTagTimestamp(ispHeader)+"</Timestamp>", "<Timestamp>"+RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader)+"</Timestamp>");
-								
-			       client = ClientBuilder.newClient();
-			       String result=null;
-			       
-			       if (user !=null && password != null )
-			            result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/search/query")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .header( "Authorization","Basic "+encoding  )
-			            .put(Entity.entity(form,MediaType.TEXT_PLAIN_TYPE),
-			            		java.lang.String.class);
-			       
-			       else 
-			            result = client.target( urlServer)
-			            .path("/rest/bpm/wle/v1/search/query")
-			            .request( "application/json" )
-			            .header("X-ISPWebServicesHeader", ispHeader)
-			            .put(Entity.entity(form,MediaType.TEXT_PLAIN_TYPE),
-			            		java.lang.String.class);
-			       
-				obj = new JSONObject(result);
-				
-				sb1.append("<![CDATA[").append(result).append("]]>");
-				
-				trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""),this.cdb);
-				
+				String userPassword = null;
+				String encoding = null;
 
-			} else
-			{
-				obj = new JSONObject(headerMessageValidation);
-			    
-			    trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, headerMessageValidation),this.cdb);
-			    
-			    throw new LIBBPMException(headerMessageValidation);
-			}	
-			
-		} catch (Exception e) {
-	
-			trace(ispHeader,executionTS, getTagApplicationIDValue(ispHeader),formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)),this.cdb);
-			
-			throw new LIBBPMException(RestApiBPM.formatError(e));
+				if (user != null && password != null) {
+					userPassword = user + ":" + password;
+					encoding = new String(Base64.encodeBase64(userPassword.getBytes()));
+				}
 
-		}
-		finally {
-			
-			if (client !=null) client.close();
+				String headerMessageValidation = checkISPHeader(ispHeader);
+
+				sb.append("<function>").append("getInbox").append("<params>").append("</params>").append("</function>");
+
+				if (headerMessageValidation.length() == 0) {
+
+					// normalize Ts in ispHeader
+					ispHeader = ispHeader.replaceAll(
+							"<Timestamp>" + RestApiBPM.getTagTimestamp(ispHeader) + "</Timestamp>",
+							"<Timestamp>" + RestApiBPM.getTagTimestampCheckAndNormalize(ispHeader) + "</Timestamp>");
+
+					client = ClientBuilder.newClient();
+					String result = null;
+
+					if (user != null && password != null)
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/search/query")
+						.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+						.header("Authorization", "Basic " + encoding)
+						.put(Entity.entity(form, MediaType.TEXT_PLAIN_TYPE), java.lang.String.class);
+
+					else
+						result = client.target(urlServer).path("/rest/bpm/wle/v1/search/query")
+						.request("application/json").header("X-ISPWebServicesHeader", ispHeader)
+						.put(Entity.entity(form, MediaType.TEXT_PLAIN_TYPE), java.lang.String.class);
+
+					obj = new JSONObject(result);
+
+					sb1.append("<![CDATA[").append(result).append("]]>");
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+							formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, ""), this.cdb);
+
+				} else {
+					obj = new JSONObject(headerMessageValidation);
+
+					trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+							sb.toString(), sb1.toString(), executionTS, headerMessageValidation), this.cdb);
+
+					throw new LIBBPMException(headerMessageValidation);
+				}
+
+			} catch (Exception e) {
+
+				trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader), formatXmltraceData(ispHeader,
+						sb.toString(), sb1.toString(), executionTS, RestApiBPM.formatError(e)), this.cdb);
+
+				throw new LIBBPMException(RestApiBPM.formatError(e));
+
+			} finally {
+
+				if (client != null)
+					client.close();
+			}
+		} else {
+
+			trace(ispHeader, executionTS, getTagApplicationIDValue(ispHeader),
+					formatXmltraceData(ispHeader, sb.toString(), sb1.toString(), executionTS, Messages.ERROR_8),
+					this.cdb);
+
+			throw new LIBBPMException(Messages.ERROR_8);
 		}
 
 		return obj;
-		
-	}
 
+	}
 
 	/**
 	 * 
@@ -2588,8 +2947,7 @@ public class RestApiBPM {
 	 * @return JsonArray
 	 * 
 	 *         <p>
-	 *         <h4>
-	 *         Example</h4>
+	 *         <h4>Example</h4>
 	 *         <p>
 	 *         JSONObject jo=null;
 	 *         <p>
@@ -2610,8 +2968,7 @@ public class RestApiBPM {
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	public JSONArray getTaskInfobyStatus(JSONObject obj, String status)
-			throws LIBBPMException {
+	public JSONArray getTaskInfobyStatus(JSONObject obj, String status) throws LIBBPMException {
 
 		JSONArray jsa = null;
 
@@ -2653,15 +3010,13 @@ public class RestApiBPM {
 
 					NodeList nodeList = nodes.item(i).getChildNodes();
 
-					for (int k = 0; null != nodeList
-							&& k < nodeList.getLength(); k++) {
+					for (int k = 0; null != nodeList && k < nodeList.getLength(); k++) {
 
 						Node nod = nodeList.item(k);
 
 						if (nod.getNodeType() == Node.ELEMENT_NODE)
 
-							service.put(nodeList.item(k).getNodeName(), nod
-									.getFirstChild().getNodeValue());
+							service.put(nodeList.item(k).getNodeName(), nod.getFirstChild().getNodeValue());
 
 					}
 
@@ -2699,15 +3054,16 @@ public class RestApiBPM {
 	/**
 	 * Execute an xpath query on a json object
 	 * 
-	 * @param Object obj
-	 * @param String query
+	 * @param Object
+	 *            obj
+	 * @param String
+	 *            query
 	 * @return Json response
 	 * @throws LIBBPMException
 	 * @throws Exception
 	 * 
 	 *             <p>
-	 *             <h4>
-	 *             Example:</h4>
+	 *             <h4>Example:</h4>
 	 *             <p>
 	 *             JSONObject jo=null;
 	 *             <p>
@@ -2721,8 +3077,7 @@ public class RestApiBPM {
 	 *             <p>
 	 *             <p>
 	 */
-	public String jsonQuery(JSONObject obj, String query)
-			throws LIBBPMException {
+	public String jsonQuery(JSONObject obj, String query) throws LIBBPMException {
 
 		String query_result = null;
 		if (query == null)
@@ -2743,8 +3098,7 @@ public class RestApiBPM {
 
 		if (checkISPHeaderValidity(ispHeader)) {
 
-			if (!isTagServiceIDValid(ispHeader)
-					|| !isTagApplicationIDValid(ispHeader)
+			if (!isTagServiceIDValid(ispHeader) || !isTagApplicationIDValid(ispHeader)
 					|| !isTagTimestampValid(ispHeader)) {
 
 				result = Messages.ERROR_1;
@@ -2754,7 +3108,7 @@ public class RestApiBPM {
 				if (getServiceIDTagValue(ispHeader).length() != 0
 						&& getTagApplicationIDValue(ispHeader).length() != 0) {
 
-					if (getTagTimestampCheckAndNormalize(ispHeader)==null)
+					if (getTagTimestampCheckAndNormalize(ispHeader) == null)
 						result = Messages.ERROR_3;
 
 				} else {
@@ -2774,14 +3128,11 @@ public class RestApiBPM {
 
 		boolean result = true;
 
-		if (ispHeader == null || ispHeader == ""
-				|| ispHeader.indexOf("<ServiceID>") == -1
+		if (ispHeader == null || ispHeader == "" || ispHeader.indexOf("<ServiceID>") == -1
 
-				|| ispHeader.indexOf("</ServiceID>") == -1
-				|| ispHeader.indexOf("<ApplicationID>") == -1
+				|| ispHeader.indexOf("</ServiceID>") == -1 || ispHeader.indexOf("<ApplicationID>") == -1
 
-				|| ispHeader.indexOf("</ApplicationID>") == -1
-				|| ispHeader.indexOf("<Timestamp>") == -1
+				|| ispHeader.indexOf("</ApplicationID>") == -1 || ispHeader.indexOf("<Timestamp>") == -1
 				|| ispHeader.indexOf("</Timestamp") == -1) {
 
 			result = false;
@@ -2842,13 +3193,13 @@ public class RestApiBPM {
 		int startindex = ispHeader.indexOf("<ApplicationID>");
 
 		int endindex = ispHeader.indexOf("</ApplicationID>");
-		
-		if (startindex==-1 || endindex ==-1) {
-			
-			response="?";
-			
+
+		if (startindex == -1 || endindex == -1) {
+
+			response = "?";
+
 		} else {
-			
+
 			response = ispHeader.substring(startindex + 15, endindex);
 
 		}
@@ -2871,7 +3222,7 @@ public class RestApiBPM {
 		return result;
 
 	}
-	
+
 	private static String getTagTimestampCheckAndNormalize(String ispHeader) {
 
 		String ts = "";
@@ -2882,11 +3233,10 @@ public class RestApiBPM {
 
 		ts = ispHeader.substring(startindex + 11, endindex);
 
-
 		return RestApiBPM.checkTimestamp(ts);
 
 	}
-	
+
 	private static String getTagTimestamp(String ispHeader) {
 
 		String ts = "";
@@ -2898,146 +3248,164 @@ public class RestApiBPM {
 		ts = ispHeader.substring(startindex + 11, endindex);
 
 		return ts;
-		
+
 	}
 
 	private boolean isHeaderISPinBO(String bo) {
 
 		boolean result = false;
-		
+
 		System.out.println(bo);
 
-		//if (bo != null && bo.indexOf("\"ISPWebServiceHeader\"", 0) != -1)
-	    if (bo != null && bo.indexOf("<ISPWebserviceHeader>", 0) != -1)
+		// if (bo != null && bo.indexOf("\"ISPWebServiceHeader\"", 0) != -1)
+		if (bo != null && bo.indexOf("<ISPWebserviceHeader>", 0) != -1)
 			result = true;
-		
-		//result=true;ISPWebserviceHeader
-		
+
+		// result=true;ISPWebserviceHeader
+
 		return result;
-		
+
 	}
-	
-	private void trace(String ispHeader,String executionTs, String applicationId, String data,com.isp.bpm.rest.ConnectionDataBeanSingleton cdb) throws LIBBPMException {
+
+	private void trace(String ispHeader, String executionTs, String applicationId, String data,
+			com.isp.bpm.rest.ConnectionDataBeanSingleton cdb) throws LIBBPMException {
 
 		String url = "";
-		int timeout=0;
-		String[] endPointAndTimeout=null;
+		int timeout = 0;
+		String[] endPointAndTimeout = null;
 		String nowTraceTs = "";
 		StringBuffer sb = new StringBuffer();
-		
+
 		if (cdb.getTrace()) {
-			
-			
-        if (applicationId==null) applicationId="?"; //if header is invalid for example
-			
+
+			if (applicationId == null)
+				applicationId = "?"; // if header is invalid for example
+
 			Cache cache = cdb.getCache();
-			
+
 			@SuppressWarnings("rawtypes")
-			HashMap current=null;
-			
-			Element element=cache.get("NBPLIBTRC");
-			
+			HashMap current = null;
+
+			Element element = cache.get("NBPLIBTRC");
+
 			if (element == null) {
-				
+
 				sb.append("<ServiceID>").append("NBPLIBTRC").append("</ServiceID>").append("<ApplicationID>")
-				.append(applicationId).append("</ApplicationID>").append("<Timestamp>")
-				.append(executionTs).append("</Timestamp>");
-				
-				endPointAndTimeout=new com.isp.wsrr.lookup.utility.WsrrUtility().getTraceCatalogEndpointAndTimeout(sb.toString(), cdb.getServerType(),cdb.getUrlwsrr(), cdb.getUserwsrr(), cdb.getPasswordwsrr());
-				
-				cache.put(new Element("NBPLIBTRC",endPointAndTimeout));
-				
+				.append(applicationId).append("</ApplicationID>").append("<Timestamp>").append(executionTs)
+				.append("</Timestamp>");
+
+				endPointAndTimeout = new com.isp.wsrr.lookup.utility.WsrrUtility().getTraceCatalogEndpointAndTimeout(
+						sb.toString(), cdb.getServerType(), cdb.getUrlwsrr(), cdb.getUserwsrr(), cdb.getPasswordwsrr());
+
+				cache.put(new Element("NBPLIBTRC", endPointAndTimeout));
+
 			} else {
-				endPointAndTimeout=(String[])element.getObjectValue();
+				endPointAndTimeout = (String[]) element.getObjectValue();
 			}
-			
-			if (endPointAndTimeout !=null){
-				
-				url=endPointAndTimeout[0];
+
+			if (endPointAndTimeout != null) {
+
+				url = endPointAndTimeout[0];
 				try {
-				timeout=Integer.parseInt(endPointAndTimeout[1]);
+					timeout = Integer.parseInt(endPointAndTimeout[1]);
+				} catch (NumberFormatException ex) {
+					timeout = 3;
 				}
-					catch(NumberFormatException ex) {
-						timeout=3;
-				}
-					
-				if (url!=null && url.length()!=0) {
+
+				if (url != null && url.length() != 0) {
 					if (!url.contains("void://")) {
 
 						sb.delete(0, sb.length());
-						sb.append("<input>").append("<header><![CDATA[").append(ispHeader).append("]]></header>").append(data).append("<hostName>todo</hostName>").append("<environment>todo</environment>");
-						sb.append("<beginTimestamp>").append(executionTs).append("</beginTimestamp>>").append("<endTimestamp>").append(nowTraceTs).append("</endTimestamp>").append("</input>");
-						
-						new com.isp.wsrr.lookup.utility.WsrrUtility().restClientTracingServicePost(url,timeout, data);
+						sb.append("<input>").append("<header><![CDATA[").append(ispHeader).append("]]></header>")
+						.append(data).append("<hostName>todo</hostName>")
+						.append("<environment>todo</environment>");
+						sb.append("<beginTimestamp>").append(executionTs).append("</beginTimestamp>>")
+						.append("<endTimestamp>").append(nowTraceTs).append("</endTimestamp>")
+						.append("</input>");
+
+						new com.isp.wsrr.lookup.utility.WsrrUtility().restClientTracingServicePost(url, timeout, data);
 					}
-					
+
 				} else
-					throw new LIBBPMException(Messages.ERROR_7);		
+					throw new LIBBPMException(Messages.ERROR_7);
 			}
 		}
 
 	}
-	
-	 private static String checkTimestamp(String input) {
 
-         boolean iscorrect=false;
+	private static String checkTimestamp(String input) {
 
-         String ts=null;
+		boolean iscorrect = false;
 
-         String other=null;
+		String ts = null;
 
-         if (input!=null && input.length()>= 17 & input.length()<=20) {
+		String other = null;
 
-                String zero="00000000";
+		if (input != null && input.length() >= 17 & input.length() <= 20) {
 
-             ts=input.substring(0,14);
+			String zero = "00000000";
 
-             other=input.substring(14,input.length());
+			ts = input.substring(0, 14);
 
-             DateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+			other = input.substring(14, input.length());
 
-             formatter.setLenient(false);
+			DateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
 
-             try {
+			formatter.setLenient(false);
 
-                formatter.parse(ts);
-
-                Integer.parseInt(other);
-
-                ts=ts+other;
-
-                    int difflen=20-ts.length();
-
-                    ts=ts.concat(zero.substring(0,difflen));
-
-                    iscorrect=true;
-
-               
-
-                } catch (Exception e) {
-
-                       iscorrect=false;
-
-                }
-
-         }
-
-       
-         if (iscorrect) return ts;
-
-         else return null;
-
-}
-	 
-		private static String  getHostName() {
-
-			String hostName="";
 			try {
-				hostName=InetAddress.getLocalHost().getHostName();
-			} catch (UnknownHostException e) {
-				//not todo
+
+				formatter.parse(ts);
+
+				Integer.parseInt(other);
+
+				ts = ts + other;
+
+				int difflen = 20 - ts.length();
+
+				ts = ts.concat(zero.substring(0, difflen));
+
+				iscorrect = true;
+
+			} catch (Exception e) {
+
+				iscorrect = false;
+
 			}
-			return hostName;
 
 		}
+
+		if (iscorrect)
+			return ts;
+
+		else
+			return null;
+
+	}
+
+	private static String getHostName() {
+
+		String hostName = "";
+		try {
+			hostName = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			// not todo
+		}
+		return hostName;
+
+	}
+
+	private static boolean checkUsernamePassword(String username, String username_, String password, String password_) {
+
+		boolean result = true;
+
+		if (username_ == null || password_ == null) {
+
+			if (username == null || password == null)
+				result = false;
+
+		}
+
+		return result;
+	}
 }

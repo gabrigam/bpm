@@ -17,4 +17,6 @@ public final class Messages {
 	public static final String ERROR_6 = "{\"errore_LIBBPM\":\"Il file di configurazione per il gestore cache (EHCACHE) non contiene una definizione di cache con nome : wsrrlkpcache\"}";
 
 	public static final String ERROR_7 = "{\"errore_LIBBPM\":\"Endpoint del servizio di tracciatura non specificato\"}";
+	//V2.6
+	public static final String ERROR_8 = "{\"errore_LIBBPM\":\"Impostare utente e password per eseguire la funzione\"}";
 }
