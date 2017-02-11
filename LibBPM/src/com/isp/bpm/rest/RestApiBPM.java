@@ -451,7 +451,7 @@ public class RestApiBPM {
 		}
 		sb.append("<messageType>BPM</messageType>");
 		sb.append("<hostName>").append(RestApiBPM.getHostName()).append("</hostName>")
-				.append("<environment>todo</environment>").append("<libVersion>").append(aboutLib)
+				.append("<environment></environment>").append("<libVersion>").append(aboutLib)
 				.append("</libVersion>");
 		sb.append("<initialtimeStamp>").append(executionTS).append("</initialtimeStamp>");
 		sb.append("<finaltimeStamp>").append(new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date()))
@@ -3142,8 +3142,8 @@ public class RestApiBPM {
 
 						sb.delete(0, sb.length());
 						sb.append("<input>").append("<header><![CDATA[").append(ispHeader).append("]]></header>")
-								.append(data).append("<hostName>todo</hostName>")
-								.append("<environment>todo</environment>").append("<libVersion>").append(aboutLib)
+								.append(data).append("<hostName>").append(RestApiBPM.getHostName()).append("</hostName>")
+								.append("<environment></environment>").append("<libVersion>").append(aboutLib)
 								.append("</libVersion>");
 						sb.append("<beginTimestamp>").append(executionTs).append("</beginTimestamp>>")
 								.append("<endTimestamp>").append(nowTraceTs).append("</endTimestamp>")
