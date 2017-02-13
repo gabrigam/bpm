@@ -163,10 +163,10 @@ public class RestApiBPM {
 
 					String headerMessageValidation = checkISPHeader(ispHeader);
 
-					sb.append("<function>").append("startService").append("<params>")
+					sb.append("<function><startService>").append("<params>")
 							.append("<BusinessObject><![CDATA[").append(inputVar).append("]]>")
 							.append("</BusinessObject>").append("<serviceName>").append(serviceName)
-							.append("</serviceName>").append("</params>").append("</function>");
+							.append("</serviceName>").append("</params>").append("</startService></function>");
 
 					if (headerMessageValidation.length() == 0) {
 
@@ -295,9 +295,9 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("exposedProcessByDefaultAcronym").append("<params>")
+				sb.append("<function><exposedProcessByDefaultAcronym>").append("<params>")
 						.append("<processAcronym>").append(processAcronym).append("</processAcronym>")
-						.append("</params>").append("</function>");
+						.append("</params>").append("</exposedProcessByDefaultAcronym></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -707,8 +707,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("exposedProcessbySnapShotID").append("<params>").append("<snapshotId>")
-						.append(snapshotid).append("</snapshotId>").append("</params>").append("</function>");
+				sb.append("<function><exposedProcessbySnapShotID>").append("<params>").append("<snapshotId>")
+						.append(snapshotid).append("</snapshotId>").append("</params>").append("</exposedProcessbySnapShotID></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -887,8 +887,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("exposedProcesses").append("<params>").append("</params>")
-						.append("</function>");
+				sb.append("<function><exposedProcesses>").append("<params>").append("</params>")
+						.append("</exposedProcesses></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -1165,8 +1165,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append(function_name).append("<params><applicationName>")
-						.append(application_name).append("</applicationName>").append("</params>")
+				sb.append("<function><").append(function_name).append("><params><applicationName>")
+						.append(application_name).append("</applicationName>").append("</params>").append("</").append(function_name).append(">")
 						.append("</function>");
 
 				if (headerMessageValidation.length() == 0) {
@@ -1314,11 +1314,11 @@ public class RestApiBPM {
 
 					String headerMessageValidation = checkISPHeader(ispHeader);
 
-					sb.append("<function>").append("startProcess").append("<params>")
+					sb.append("<function><startProcess>").append("<params>")
 							.append("<BusinessObject><![CDATA[").append(inputVar).append("]]>")
 							.append("</BusinessObject>").append("<bpdId>").append(bpdId).append("</bpdId>")
 							.append("<processAppId>").append(processAppId).append("</processAppId>").append("</params>")
-							.append("</function>");
+							.append("</startProcess></function>");
 
 					if (headerMessageValidation.length() == 0) {
 
@@ -1475,9 +1475,9 @@ public class RestApiBPM {
 
 					String headerMessageValidation = checkISPHeader(ispHeader);
 
-					sb.append("<function>").append("finishTask").append("<params>").append("<taskId>").append(taskId)
+					sb.append("<function><finishTask>").append("<params>").append("<taskId>").append(taskId)
 							.append("</taskId>").append("<BusinessObject><![CDATA[").append(inputVar).append("]]>")
-							.append("</BusinessObject>").append("</params>").append("</function>");
+							.append("</BusinessObject>").append("</params>").append("</finishTask></function>");
 
 					if (headerMessageValidation.length() == 0) {
 
@@ -1598,8 +1598,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("processIntancesSearch").append("<params>").append("<appShortName>")
-						.append(appShortName).append("</appShortName>").append("</params>").append("</function>");
+				sb.append("<function><processIntancesSearch>").append("<params>").append("<appShortName>")
+						.append(appShortName).append("</appShortName>").append("</params>").append("</processIntancesSearch></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -1710,8 +1710,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("queryTasks").append("<params>").append("<instanceId>")
-						.append(instanceId).append("</instanceId>").append("</params>").append("</function>");
+				sb.append("<function><queryTasks>").append("<params>").append("<instanceId>")
+						.append(instanceId).append("</instanceId>").append("</params>").append("</queryTasks></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -1853,8 +1853,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("taskDetails").append("<params>").append("<taskId>").append(taskId)
-						.append("</taskId>").append("</params>").append("</function>");
+				sb.append("<function><taskDetails>").append("<params>").append("<taskId>").append(taskId)
+						.append("</taskId>").append("</params>").append("</taskDetails></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -2475,8 +2475,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("userInGroup").append("<params>").append("<group>").append(group)
-						.append("</group").append("</params>").append("</function>");
+				sb.append("<function><userInGroup>").append("<params>").append("<group>").append(group)
+						.append("</group").append("</params>").append("</userInGroup></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -2585,8 +2585,8 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("userInformation").append("<params>").append("<user>").append(usertarget)
-						.append("</user").append("</params>").append("</function>");
+				sb.append("<function><userInformation>").append("<params>").append("<user>").append(usertarget)
+						.append("</user").append("</params>").append("</userInformation></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
@@ -2598,7 +2598,6 @@ public class RestApiBPM {
 					client = ClientBuilder.newClient();
 					String result = null;
 
-					if (user != null && password != null)
 						result = client.target(urlServer).path("/rest/bpm/wle/v1/user/" + usertarget)
 								.queryParam("includeInternalMemberships", "false").queryParam("refreshUser", "false")
 								.queryParam("parts", "memberships").request("application/json")
@@ -2706,7 +2705,7 @@ public class RestApiBPM {
 
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
-				sb.append("<function>").append("getInbox").append("<params>").append("</params>").append("</function>");
+				sb.append("<function><getInbox>").append("<params>").append("</params>").append("</getInbox></function>");
 
 				if (headerMessageValidation.length() == 0) {
 
