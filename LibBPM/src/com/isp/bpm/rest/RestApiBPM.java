@@ -520,8 +520,8 @@ public class RestApiBPM {
 				String headerMessageValidation = checkISPHeader(ispHeader);
 
 				sb.append("<function><exposedProcessbyAcronymAndVersionName>").append("<params>")
-						.append("<processAcronym>").append(processAcronym).append("</processAcronym>>")
-						.append("<snapShotVersion>").append(snapshotversion).append("</<snapShotVersion>")
+						.append("<processAcronym>").append(processAcronym).append("</processAcronym>")
+						.append("<snapShotVersion>").append(snapshotversion).append("</snapShotVersion>")
 						.append("</params></exposedProcessbyAcronymAndVersionName></function>");
 
 				if (headerMessageValidation.length() == 0) {
