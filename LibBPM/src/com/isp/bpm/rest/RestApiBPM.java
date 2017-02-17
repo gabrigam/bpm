@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -140,7 +141,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (serviceInputBO != null) {
 
@@ -280,7 +281,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -505,7 +506,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -690,7 +691,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -872,7 +873,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1148,7 +1149,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1287,7 +1288,7 @@ public class RestApiBPM {
 		JSONObject obj = null;
 		Client client = null;
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1448,7 +1449,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1580,7 +1581,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1695,7 +1696,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1838,7 +1839,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -1956,7 +1957,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -2085,7 +2086,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -2207,7 +2208,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -2332,7 +2333,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -2460,7 +2461,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -2570,7 +2571,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -2690,7 +2691,7 @@ public class RestApiBPM {
 		StringBuffer sb = new StringBuffer();
 		StringBuffer sb1 = new StringBuffer();
 
-		String executionTS = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+		String executionTS = RestApiBPM.quadratureTS();
 
 		if (RestApiBPM.checkUsernamePassword(user, user_, password, password_)) {
 
@@ -3257,4 +3258,31 @@ public class RestApiBPM {
 
 		return passwd;
 	}
+	
+	//17022017
+	 public static String quadratureTS() {
+		 
+			String ts=null;
+			
+			long timeInMillis = System.currentTimeMillis();
+			long timeInNanos = System.nanoTime();
+			
+			Timestamp timestamp = new Timestamp(timeInMillis);
+			timestamp.setNanos((int) (timeInNanos % 1000000000));
+
+			String micros=timestamp.toString();
+			
+			String partmicro=micros.substring(micros.length()-9,micros.length()-3);
+			
+			String cts=new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(new Date());
+			
+			String partcts=cts.substring(0,cts.length()-6);
+			
+			long start = System.nanoTime();
+			long microseconds = start / 1000;			
+			
+			String strmicros = Long.toString(microseconds);			
+						
+			return (partcts+strmicros.substring(0,6));
+		 }
 }
